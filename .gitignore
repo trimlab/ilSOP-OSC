@@ -13,6 +13,12 @@
 *.dylib
 *.dll
 
+#Library Directories
+boost_1_53_0/
+oscpack/
+oscpack_1_1_0/
+vicon-libs/
+
 # Fortran module files
 *.mod
 
