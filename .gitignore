@@ -32,3 +32,6 @@ vicon-libs/
 *.exe
 *.out
 *.app
+
+# Log files
+*.txt
