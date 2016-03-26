@@ -2,17 +2,17 @@
 
 case "$1" in
 	'gestureartwork')
-		cd GestureResponse
+		cd gestureartwork
 		./vicon_launcher.sh
 	;;
 
 	'keyboard')
-		cd keyboard-chromium-ver
+		cd keyboard
 		./keyboard_launcher.sh
 	;;
 
 	'worldmap')
-		cd vicon-relay
+		cd worldmap
 		./worldmap_launcher.sh
 	;;
 
