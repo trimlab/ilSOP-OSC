@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <ctime>
+#include <cstdio>
 
 #define SEND_IP "10.1.255.255"  // broadcast address for IVS network (update if needed)
 #define BUFLEN 512
@@ -334,8 +336,10 @@ void keyboard(unsigned char key, int x, int y) {
 int gargc;
 char** gargv;
 
-void sender() {
-  if (simulation) { // read from data dump
+void sender()
+{
+  if (simulation)
+	{ // read from data dump
     string line;
     ifstream inputFile(gargv[1]);
     if (inputFile.is_open()) {
@@ -351,7 +355,9 @@ void sender() {
       exit(1);
     }
     inputFile.close();
-  } else { // live tracking w/ Vicon
+  }
+	else // live tracking w/ Vicon
+	{
     outputFile.open(gargv[4]);
     flagObject = gargv[5];
     for (int i = 6; i < gargc; i++)
@@ -359,7 +365,8 @@ void sender() {
 
     //vector<format> formatters;
     //for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
-    while (true) {
+    while (true)
+		{
       totalCtr++;
       if (MyClient.GetFrame().Result != Result::Success )
         printf("WARNING: Inside display() and there is no data from Vicon...\n");
@@ -369,8 +376,10 @@ void sender() {
         switchDrawingCtr = 360;
         drawingOn = !drawingOn;
       }
-      if (drawingOn && totalCtr % UPDATE_COUNTER == 0) {
-        for (int i = 0; i < objectsToTrack.size(); i++) {
+      if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
+			{
+        for (int i = 0; i < objectsToTrack.size(); i++)
+				{
           dataToSend.clear();
           Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
           Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
@@ -388,7 +397,8 @@ void sender() {
 //          dataToSend.append(formatters[i].str());
           outputFile << dataToSend << "\n";
           dataToSend.append("\n");
-          if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1) {
+          if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+					{
             perror ("ERROR sendto()");
           }
 
@@ -398,6 +408,8 @@ void sender() {
     }
   } // end live tracking w/ Vicon
 }
+
+std::clock_t time;
 
 int main(int argc, char** argv)
 {
@@ -492,6 +504,9 @@ int main(int argc, char** argv)
 
 		UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 
+		//Start timer
+		time = std::clock();
+
     while (true)
     {
       if (MyClient.GetFrame().Result != Result::Success )
@@ -520,6 +535,10 @@ int main(int argc, char** argv)
 				char buffer[1024];
 				osc::OutboundPacketStream packet (buffer, 1024);
 
+				double oldTime = time;
+				double deltaT = (std::clock() - time)/ ((double) CLOCKS_PER_SEC);
+				time += deltaT;
+
 				packet << osc::BeginBundle();
 
         for (int i = 0; i < objectsToTrack.size(); i++)
@@ -544,18 +563,32 @@ int main(int argc, char** argv)
           dataToSend.append("\n");
 					dataToSendAudio += "%" + dataToSend;
 
-					packet << osc::BeginMessage(("/" + objectsToTrack[i]).c_str())
-						<< boost::lexical_cast<string>((float)globalTranslate.Translation[0] / -1000.0f).c_str()
+					packet << osc::BeginMessage(("/" + objectsToTrack[i]).c_str());
+
+					packet << osc::BeginMessage("/position")
+					  << boost::lexical_cast<string>((float)globalTranslate.Translation[0] / -1000.0f).c_str()
 						<< boost::lexical_cast<string>((float)globalTranslate.Translation[1] / 1000.0f * 1.5f).c_str()
 						<< boost::lexical_cast<string>((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f).c_str()
 						<< osc::EndMessage;
 
-          if (drawingOn && totalCtr % UPDATE_COUNTER == 0) 
+					packet << osc::BeginMessage("/velocity")
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[0] / -1000.0f) / deltaT).c_str()
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[1] / 1000.0f * 1.5f) / deltaT).c_str()
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f) / deltaT).c_str()
+						<< osc::EndMessage;
+
+					packet << osc::BeginMessage("/acceleration")
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[0] / -1000.0f) / deltaT / deltaT).c_str()
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[1] / 1000.0f * 1.5f) / deltaT / deltaT).c_str()
+						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f) / deltaT / deltaT).c_str()
+						<< osc::EndMessage;
+
+          if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
             dataToSendSlaves = dataToSend + "~RECORD";
-          else 
+          else
             dataToSendSlaves = dataToSend + "~NOREC";
 
-          if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1) 
+          if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1)
           {
             perror ("ERROR sendto() - real data");
           }

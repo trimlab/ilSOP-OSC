@@ -26,7 +26,7 @@
 
 using namespace std;
 
-const GLdouble SCREEN_WIDTH = (1920*3);  
+const GLdouble SCREEN_WIDTH = (1920*3);
 const GLdouble SCREEN_HEIGHT = 1080;
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
@@ -55,7 +55,7 @@ int numTrackedObjects;
 
 const bool DEBUGGING = true;
 vector<string> trackNames;
-map<string, vector<trackable> > trackHistory; 
+map<string, vector<trackable> > trackHistory;
 vector<float> averageDistances;
 
 map<string, vector<trackable> > afterImages;
@@ -283,11 +283,11 @@ void averageDistanceHelper() {
             bufferHead++;
 }
 
-void receiver() 
+void receiver()
 {
   char buf[BUFLEN];
   vector<string> splitLine;
-  while (true) 
+  while (true)
   {
     if(DEBUGGING)
     {
@@ -295,7 +295,7 @@ void receiver()
     }
 
     if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
-      &slen) == -1) 
+      &slen) == -1)
     {
       debugFile << "error receiving data" << endl;
       error("ERROR recvfrom()");
@@ -336,7 +336,7 @@ void receiver()
       if (executionCtr % 3 == 0) addAfterImage(splitLine[0], newTrackData);
 
 if (DEBUGGING) { debugFile << "got input " << splitLine[4] << "\n"; }
-      
+
       // ADD LINE RECORDING FOR ARTIST VERSION
       if (splitLine[4].find("RECORD") == 0 &&
          (newTrackData.x != 0 || newTrackData.y != 0 || newTrackData.z != 0))
@@ -371,9 +371,9 @@ if (DEBUGGING) { debugFile << "got input " << splitLine[4] << "\n"; }
 
       if (!simulation) {  // counting for live tracking
         totalCtr++;
-        if (trackNames.size() > 0) 
+        if (trackNames.size() > 0)
         {
-          if (totalCtr % trackNames.size() == 0) 
+          if (totalCtr % trackNames.size() == 0)
           {
             averageDistanceHelper();
           }
@@ -381,17 +381,19 @@ if (DEBUGGING) { debugFile << "got input " << splitLine[4] << "\n"; }
       }
 
     // end check for valid input line
-    } else if (simulation) { // counting for data dump reading
+    }
+    else if (simulation)
+    { // counting for data dump reading
       totalCtr++;
       averageDistanceHelper();
       // compute average proximity
 
-// DEBUG CODE
-//if (logger) {
-//  outputFile << "trackNames.size() is " << boost::lexical_cast<string>(trackNames.size()) << "\n";
-//  outputFile << "numTrackedObjects is " << boost::lexical_cast<string>(numTrackedObjects) << "\n";
-//}
-// END DEBUG CODE
+      // DEBUG CODE
+      //if (logger) {
+      //  outputFile << "trackNames.size() is " << boost::lexical_cast<string>(trackNames.size()) << "\n";
+      //  outputFile << "numTrackedObjects is " << boost::lexical_cast<string>(numTrackedObjects) << "\n";
+      //}
+      // END DEBUG CODE
 
     }
   } // end receive loop
@@ -403,16 +405,16 @@ void display() {
 
   // auto close
   framesPassed++;
-  if (receivedPacket) 
+  if (receivedPacket)
   {
     if (framesPassed > 180) {
       if (DEBUGGING) debugFile.close();
       exit(0);
     }
-  } 
-  else 
+  }
+  else
   {
-    if (framesPassed > 900) 
+    if (framesPassed > 900)
     {
       if (DEBUGGING) debugFile.close();
       exit(0);
@@ -509,10 +511,12 @@ void display() {
   }
 
   // display particles
-  /*for (int i = particles.size() - 1; i >= 0; i--) {
+  for (int i = particles.size() - 1; i >= 0; i--) {
     particles[i].colorA -= 0.0025f;
-    if (particles[i].colorA <= 0) particles.erase(particles.begin() + i);
-    else {
+    if (particles[i].colorA <= 0)
+      particles.erase(particles.begin() + i);
+    else
+    {
       particles[i].x += particles[i].x_vel;
       particles[i].y += particles[i].y_vel;
       particles[i].z += particles[i].z_vel;
@@ -523,7 +527,7 @@ void display() {
       glutSolidCube(0.07);
       glPopMatrix();
     }
-  } */
+  }
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -551,7 +555,7 @@ int main(int argc, char** argv)
   string nameOfFile = "/research/emvasey/ilSoP-OSC/slave-";
   strcat(nameOfFile.c_str(), argv[7]);
   strcat(nameOfFile.c_str(), ".txt");
-  if (DEBUGGING) 
+  if (DEBUGGING)
     debugFile.open(nameOfFile.c_str());
 
 
@@ -570,7 +574,7 @@ int main(int argc, char** argv)
 
   // socket stuff
   slen=sizeof(si_other);
-  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
+  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
   {
     debugFile << "socket error" << endl;
     error("ERROR socket");
