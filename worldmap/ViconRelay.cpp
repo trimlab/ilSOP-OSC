@@ -43,8 +43,10 @@ std::string HostName = "141.219.28.17:801";
 //std::string HostName = "localhost:801";
 
 // screen width/height indicate the size of the window on our screen (not the size of the display wall). The aspect ratio must match the actual display wall.
-const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;  
-const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
+//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;  
+//const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
+const GLdouble SCREEN_WIDTH = (1920.0*3);  
+const GLdouble SCREEN_HEIGHT = (1080.0);
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
 // socket stuff
@@ -453,7 +455,8 @@ void display() {
 
 }
 
-void sender() {
+void sender() 
+{
 
   vector<format> formatters;
   for (int i = 0; i < objectsToTrack.size(); i++) {
@@ -472,7 +475,8 @@ void sender() {
     if(MyClient.GetFrame().Result != Result::Success )
       printf("WARNING: Inside display() and there is no data from Vicon...\n");
 
-    for (int i = 0; i < objectsToTrack.size(); i++) {
+    for (int i = 0; i < objectsToTrack.size(); i++) 
+    {
       Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
       Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
 

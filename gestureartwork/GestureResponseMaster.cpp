@@ -14,9 +14,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <pthread.h>
-#include <ctime>
-#include <cstdio>
 
 #define SEND_IP "10.1.255.255"  // broadcast address for IVS network (update if needed)
 #define BUFLEN 512
@@ -409,8 +408,6 @@ void sender()
   } // end live tracking w/ Vicon
 }
 
-std::clock_t time;
-
 int main(int argc, char** argv)
 {
   if (argc < 2) {
@@ -505,7 +502,18 @@ int main(int argc, char** argv)
 		UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 
 		//Start timer
-		time = std::clock();
+		timeval tim;
+		gettimeofday(&tim, NULL);
+
+		//initialize previous value vectors
+		vector<vector<float> > prevPositions(objectsToTrack.size());
+		vector<vector<float> > prevVelocities(objectsToTrack.size());
+
+		for(int i = 0; i < objectsToTrack.size(); i++)
+		{
+			prevPositions.push_back(vector<float>(3));
+			prevVelocities.push_back(vector<float>(3));
+		}
 
     while (true)
     {
@@ -531,28 +539,53 @@ int main(int argc, char** argv)
 
       if (true)
       {
-				string dataToSendAudio, dataToSendSlaves;
-				char buffer[1024];
-				osc::OutboundPacketStream packet (buffer, 1024);
+		string dataToSendAudio, dataToSendSlaves;
+		char buffer[1024];
+		osc::OutboundPacketStream packet (buffer, 1024);
 
-				double oldTime = time;
-				double deltaT = (std::clock() - time)/ ((double) CLOCKS_PER_SEC);
-				time += deltaT;
+		timeval newTime;
+		gettimeofday(&newTime, NULL);
 
-				packet << osc::BeginBundle();
+		float deltaT = (newTime.tv_usec - tim.tv_usec)/1000000.0f;
+		tim = newTime;
+
+
+		packet << osc::BeginBundle();
+
 
         for (int i = 0; i < objectsToTrack.size(); i++)
         {
           dataToSend.clear();
           Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
           Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
+
+		  float x = globalTranslate.Translation[0] / -1000.0f;
+		  float y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
+		  float z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
+
+		  float xVel = (x-prevPositions[i][0])/deltaT;
+		  float yVel = (y-prevPositions[i][1])/deltaT;
+		  float zVel = (z-prevPositions[i][2])/deltaT;
+
+		  float xAccel = (xVel-prevVelocities[i][0])/deltaT;
+		  float yAccel = (yVel-prevVelocities[i][1])/deltaT;
+		  float zAccel = (zVel-prevVelocities[i][2])/deltaT;
+
+		  prevPositions[i][0] = x;
+		  prevPositions[i][1] = y;
+		  prevPositions[i][2] = z;
+
+		  prevVelocities[i][0] = xVel;
+		  prevVelocities[i][1] = yVel;
+		  prevVelocities[i][2] = zVel;
+
           dataToSend = objectsToTrack[i];
           dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[0] / -1000.0f));
+          dataToSend.append(boost::lexical_cast<string>(x));
           dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[1] / 1000.0f * 1.5f));
+          dataToSend.append(boost::lexical_cast<string>(y));
           dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f));
+          dataToSend.append(boost::lexical_cast<string>(z));
 //          formatters[i] % objectsToTrack[i];
 //          formatters[i] % (globalTranslate.Translation[0] / 1000);
 //          formatters[i] % (globalTranslate.Translation[1] / 1000);
@@ -561,27 +594,25 @@ int main(int argc, char** argv)
           //outputFile << dataToSend << "\n";
           //cout << dataToSend << endl;
           dataToSend.append("\n");
-					dataToSendAudio += "%" + dataToSend;
+		dataToSendAudio += "%" + dataToSend;
 
-					packet << osc::BeginMessage(("/" + objectsToTrack[i]).c_str());
+		packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
+		    << boost::lexical_cast<string>(x).c_str()
+			<< boost::lexical_cast<string>(y).c_str()
+			<< boost::lexical_cast<string>(z).c_str()
+			<< osc::EndMessage;
 
-					packet << osc::BeginMessage("/position")
-					  << boost::lexical_cast<string>((float)globalTranslate.Translation[0] / -1000.0f).c_str()
-						<< boost::lexical_cast<string>((float)globalTranslate.Translation[1] / 1000.0f * 1.5f).c_str()
-						<< boost::lexical_cast<string>((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f).c_str()
-						<< osc::EndMessage;
+		packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
+			<< boost::lexical_cast<string>(xVel).c_str()
+			<< boost::lexical_cast<string>(yVel).c_str()
+			<< boost::lexical_cast<string>(zVel).c_str()
+			<< osc::EndMessage;
 
-					packet << osc::BeginMessage("/velocity")
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[0] / -1000.0f) / deltaT).c_str()
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[1] / 1000.0f * 1.5f) / deltaT).c_str()
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f) / deltaT).c_str()
-						<< osc::EndMessage;
-
-					packet << osc::BeginMessage("/acceleration")
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[0] / -1000.0f) / deltaT / deltaT).c_str()
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[1] / 1000.0f * 1.5f) / deltaT / deltaT).c_str()
-						<< boost::lexical_cast<string>(((float)globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f) / deltaT / deltaT).c_str()
-						<< osc::EndMessage;
+		packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
+			<< boost::lexical_cast<string>(xAccel).c_str()
+			<< boost::lexical_cast<string>(yAccel).c_str()
+			<< boost::lexical_cast<string>(zAccel).c_str()
+			<< osc::EndMessage;
 
           if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
             dataToSendSlaves = dataToSend + "~RECORD";
@@ -600,8 +631,10 @@ int main(int argc, char** argv)
           perror ("ERROR sendto()");
         }
 
-				packet << osc::EndBundle;
-				socket.Send(packet.Data(), packet.Size());
+		packet << osc::EndBundle;
+		socket.Send(packet.Data(), packet.Size());
+
+
       }
       else
       { // end ifDrawingOn

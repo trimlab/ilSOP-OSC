@@ -511,7 +511,7 @@ void display() {
   }
 
   // display particles
-  for (int i = particles.size() - 1; i >= 0; i--) {
+  /*for (int i = particles.size() - 1; i >= 0; i--) {
     particles[i].colorA -= 0.0025f;
     if (particles[i].colorA <= 0)
       particles.erase(particles.begin() + i);
@@ -527,7 +527,7 @@ void display() {
       glutSolidCube(0.07);
       glPopMatrix();
     }
-  }
+  }*/
 
   glutSwapBuffers();
   glutPostRedisplay();
