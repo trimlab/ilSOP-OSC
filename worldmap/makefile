@@ -1,5 +1,8 @@
-BIN=ViconRelay
-SRC=ViconRelay.cpp imageio.cpp
+SLAVE_BIN=ViconRelaySlave
+MASTER_BIN=ViconRelayMaster
+
+SLAVE_SRC=ViconRelaySlave.cpp imageio.cpp
+MASTER_SRC=ViconRelayMaster.cpp
 
 
 GLEW_INC=-I/opt/viz/include
@@ -14,8 +17,13 @@ MAGICK_LIBS=`Magick-config --ldflags --libs --cflags`
 ALL_LIBS = ${VICON_LIBS} ${GLEW_LIBS} ${BASIC_LIBS} ${MAGICK_LIBS} 
 ALL_INC  = ${GLEW_INC} ${BOOST_INC}
 
-${BIN}: Client.h ${SRC}
-	g++ -fpermissive -g -Wall -v ${SRC} -o ${BIN} ${ALL_INC} ${ALL_LIBS}
+all: $(SLAVE_BIN) $(MASTER_BIN)
+
+$(SLAVE_BIN): $(SLAVE_SRC)
+	g++ -fpermissive -g -Wall ${SLAVE_SRC} -o ${SLAVE_BIN} ${ALL_INC} ${ALL_LIBS}
+
+$(MASTER_BIN): Client.h $(MASTER_SRC)
+	g++ -fpermissive -g -Wall ${MASTER_SRC} -o ${MASTER_BIN} ${ALL_INC} ${ALL_LIBS}
 
 clean:
-	rm ${BIN}
+	rm ${MASTER_BIN} ${SLAVE_BIN}
