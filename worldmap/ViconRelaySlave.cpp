@@ -33,7 +33,7 @@ using namespace std;
 using namespace ViconDataStreamSDK::CPP;
 using boost::format;
 
-#define output_stream if(!LogFile.empty()) ; else std::cout 
+#define output_stream if(!LogFile.empty()) ; else std::cout
 
 // ***VICON***
 
@@ -43,10 +43,10 @@ std::string HostName = "141.219.28.17:801";
 //std::string HostName = "localhost:801";
 
 // screen width/height indicate the size of the window on our screen (not the size of the display wall). The aspect ratio must match the actual display wall.
-//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;  
+//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;
 //const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
-const GLdouble SCREEN_WIDTH = (1920.0*3);  
-const GLdouble SCREEN_HEIGHT = (1080.0);
+const GLdouble SCREEN_WIDTH = (1920.0*3);
+const GLdouble SCREEN_HEIGHT = 1080.0;
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
 // socket stuff
@@ -209,8 +209,9 @@ void display() {
 //    glEnable(GL_NORMALIZE);
 //    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
-
+//    glFrustum(ortho_left, ortho_right, ortho_bottom, ortho_top, 0.1, 5000);
     glEnable(GL_TEXTURE_2D);
+
     glColor3f(1,1,1); // color of quad
 
 //    glPushMatrix();
@@ -261,7 +262,7 @@ void display() {
 
 }
 
-void receiver() 
+void receiver()
 {
   while (true)
   {
@@ -292,22 +293,13 @@ void receiver()
 
 int main(int argc, char* argv[]) {
 
-  if (argc < 7) {
-    printf("Usage: ViconRelay left right bottom top IP Port TexturePath Objects\n");
+  if (argc < 2) {
+    printf("Usage: ViconRelaySlave TexturePath\n");
     return 1;
   }
 
-  ortho_left = atof(argv[1]); //-5.0;
-  ortho_right = atof(argv[2]); //0.0;
-  ortho_bottom = atof(argv[3]); //-5.0;
-  ortho_top = atof(argv[4]); //5.0;
+  texturePath = string(argv[1]);
 
-  ipAddress = string(argv[5]);
-  port = atoi(argv[6]);
-  texturePath = string(argv[7]);
-  for (int i = 8; i < argc; i++) {
-    objectsToTrack.push_back(string(argv[i]));
-  }
 //  printf("IP address passed in was %s\n", ipAddress.c_str()); // OK, that's working.
 
   // OpenGL initialization
@@ -319,31 +311,6 @@ int main(int argc, char* argv[]) {
   int glew_err = glewInit();
   if (glew_err != GLEW_OK) fprintf(stderr, "GLEW Error: %s\n", glewGetErrorString(glew_err));
   glutDisplayFunc(display);
-
-
-  //socket stuff
-  slen=sizeof(si_other);
-  so_broadcast = 1;
-
-  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-    perror("ERROR socket");
-    exit(1);
-  }
-
-  setsockopt(s, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
-
-  memset((char *) &si_other, 0, sizeof(si_other));
-  si_other.sin_family = AF_INET;
-  si_other.sin_port = htons(port);
-  if (inet_aton(ipAddress.c_str(), &si_other.sin_addr) == 0) {
-    fprintf(stderr, "inet_aton() failed\n");
-    exit(1);
-  }
-
-  if (pthread_create(&receiverThread, NULL, receiver, NULL) != 0) {
-    perror("Can't start thread, terminating\n");
-    return 1;
-  }
 
   // load image
   readfile(texturePath.c_str(), texNames, &numTiles);

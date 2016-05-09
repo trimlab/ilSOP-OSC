@@ -32,7 +32,7 @@ using namespace std;
 using namespace ViconDataStreamSDK::CPP;
 using boost::format;
 
-#define output_stream if(!LogFile.empty()) ; else std::cout 
+#define output_stream if(!LogFile.empty()) ; else std::cout
 
 // ***VICON***
 
@@ -42,9 +42,9 @@ std::string HostName = "141.219.28.17:801";
 //std::string HostName = "localhost:801";
 
 // screen width/height indicate the size of the window on our screen (not the size of the display wall). The aspect ratio must match the actual display wall.
-//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;  
+//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;
 //const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
-const GLdouble SCREEN_WIDTH = (1920.0*3);  
+const GLdouble SCREEN_WIDTH = (1920.0*3);
 const GLdouble SCREEN_HEIGHT = (1080.0);
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
@@ -246,22 +246,22 @@ void viconInit()
     MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ServerPush );
 
     // Set the global up axis
-    MyClient.SetAxisMapping( Direction::Forward, 
-                             Direction::Left, 
+    MyClient.SetAxisMapping( Direction::Forward,
+                             Direction::Left,
                              Direction::Up ); // Z-up
-    // MyClient.SetGlobalUpAxis( Direction::Forward, 
-    //                           Direction::Up, 
+    // MyClient.SetGlobalUpAxis( Direction::Forward,
+    //                           Direction::Up,
     //                           Direction::Right ); // Y-up
 
     Output_GetAxisMapping _Output_GetAxisMapping = MyClient.GetAxisMapping();
-    std::cout << "Axis Mapping: X-" << Adapt( _Output_GetAxisMapping.XAxis ) 
-			  << " Y-" << Adapt( _Output_GetAxisMapping.YAxis ) 
+    std::cout << "Axis Mapping: X-" << Adapt( _Output_GetAxisMapping.XAxis )
+			  << " Y-" << Adapt( _Output_GetAxisMapping.YAxis )
 			  << " Z-" << Adapt( _Output_GetAxisMapping.ZAxis ) << std::endl;
 
     // Discover the version number
     Output_GetVersion _Output_GetVersion = MyClient.GetVersion();
-    std::cout << "Version: " << _Output_GetVersion.Major << "." 
-			  << _Output_GetVersion.Minor << "." 
+    std::cout << "Version: " << _Output_GetVersion.Major << "."
+			  << _Output_GetVersion.Minor << "."
 			  << _Output_GetVersion.Point << std::endl;
 
 }
@@ -286,27 +286,26 @@ void keyboard(unsigned char key, int x, int y)
 string ipAddress;
 unsigned int port;
 string texturePath;
-string dataToSend;
 
 char** gargv;
 int gargc;
 
-void sender() 
+void sender()
 {
   vector<format> formatters;
+	string dataToSend;
 
-
-  for (int i = 3; i < gargc; i++) 
+  for (int i = 3; i < gargc; i++)
   {
     objectsToTrack.push_back(string(gargv[i]));
   }
 
-  for (int i = 0; i < objectsToTrack.size(); i++) 
+  for (int i = 0; i < objectsToTrack.size(); i++)
   {
     formatters.push_back(format("%1%~%2%~%3%~%4%~%5%~%6%~%7%~%8%~\n"));
   }
 
-  while (true) 
+  while (true)
   {
 
     dataToSend.clear();
@@ -318,9 +317,9 @@ void sender()
     // Get a frame
     if(MyClient.GetFrame().Result != Result::Success )
       printf("WARNING: Inside display() and there is no data from Vicon...\n");
-	else
-	{
-		for (int i = 0; i < objectsToTrack.size(); i++) 
+		else
+		{
+			for (int i = 0; i < objectsToTrack.size(); i++)
 	    {
 	      Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
 	      Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
@@ -339,9 +338,13 @@ void sender()
 	      formatters[i] % globalRotation.Rotation[2];
 
 	      dataToSend.append(formatters[i].str());
+
+				cout << "Trying to send data." << endl;
+				cout << dataToSend << endl;
 	    }
 
-	    if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1) {
+	    if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+			{
 	      perror ("ERROR sendto()");
 	    }
     }
@@ -384,10 +387,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  if (pthread_create(&senderThread, NULL, sender, NULL) != 0) {
-    perror("Can't start thread, terminating\n");
-    return 1;
-  }
+  sender();
 
   return 0;
 

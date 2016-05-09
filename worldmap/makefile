@@ -14,7 +14,7 @@ VICON_LIBS=-L/research/emvasey/ilSoP-OSC/vicon-libs -Wl,-rpath,/research/emvasey
 BASIC_LIBS=-L/share/apps/glew/1.9.0/lib -lGLEW -lglut -lX11 -lGL -lGLU -lstdc++ -lc -lm -pthread -lncurses
 MAGICK_LIBS=`Magick-config --ldflags --libs --cflags`
 
-ALL_LIBS = ${VICON_LIBS} ${GLEW_LIBS} ${BASIC_LIBS} ${MAGICK_LIBS} 
+ALL_LIBS = ${VICON_LIBS} ${GLEW_LIBS} ${BASIC_LIBS} ${MAGICK_LIBS}
 ALL_INC  = ${GLEW_INC} ${BOOST_INC}
 
 all: $(SLAVE_BIN) $(MASTER_BIN)
