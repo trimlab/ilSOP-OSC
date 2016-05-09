@@ -371,7 +371,7 @@ void sender()
         printf("WARNING: Inside display() and there is no data from Vicon...\n");
       if (switchDrawingCtr > 0) switchDrawingCtr--;
       Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
-      if (flagTranslate.Translation[2] > 2.0 && switchDrawingCtr <= 0) 
+      if (flagTranslate.Translation[2] > 2.0 && switchDrawingCtr <= 0)
       {
         switchDrawingCtr = 360;
         drawingOn = !drawingOn;
@@ -603,22 +603,22 @@ int main(int argc, char** argv)
 	  if(oscDelay == 0)
 	  {
 	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
-	      << boost::lexical_cast<string>(x).c_str()
-		<< boost::lexical_cast<string>(y).c_str()
-		<< boost::lexical_cast<string>(z).c_str()
-		<< osc::EndMessage;
+	      		 << x
+						 << y
+						 << z
+						 << osc::EndMessage;
 
 	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
-		<< boost::lexical_cast<string>(xVel).c_str()
-		<< boost::lexical_cast<string>(yVel).c_str()
-		<< boost::lexical_cast<string>(zVel).c_str()
-		<< osc::EndMessage;
+						 << xVel
+						 << yVel
+						 << zVel
+						 << osc::EndMessage;
 
 	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
-		<< boost::lexical_cast<string>(xAccel).c_str()
-		<< boost::lexical_cast<string>(yAccel).c_str()
-		<< boost::lexical_cast<string>(zAccel).c_str()
-		<< osc::EndMessage;
+						 << xAccel
+						 << yAccel
+						 << zAccel
+						 << osc::EndMessage;
 	  }
 
           if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
@@ -647,7 +647,7 @@ int main(int argc, char** argv)
 	else if(oscDelay == 8)
 	  oscDelay = 0;
 	else
-	  oscDelay++;	
+	  oscDelay++;
 
       }
       else
