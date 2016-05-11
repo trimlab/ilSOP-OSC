@@ -46,6 +46,19 @@ typedef struct myline {
   float r, g, b;
 } myline;
 
+typedef struct particle {
+  float x;
+  float y;
+  float z;
+  float x_vel;
+  float y_vel;
+  float z_vel;
+  float colorR;
+  float colorG;
+  float colorB;
+  float colorA;
+} particle;
+
 int bufferHead = -1;
 const int bufferSeconds = 5;
 const int dataHertz = 100;
@@ -59,7 +72,7 @@ map<string, vector<trackable> > trackHistory;
 vector<float> averageDistances;
 
 map<string, vector<trackable> > afterImages;
-//vector<particle> particles; -- disabled; I think these would just get in the way for drawing purposes.
+vector<particle> particles; //-- disabled; I think these would just get in the way for drawing purposes.
 
 pthread_t simulatorThread;
 ofstream debugFile;
@@ -337,6 +350,25 @@ void receiver()
 
 if (DEBUGGING) { debugFile << "got input " << splitLine[4] << "\n"; }
 
+if (executionCtr % 50 == 0) {
+        trackable velocityData = calculateVelocity(splitLine[0]);
+        trackable color = getColors(splitLine[0]);
+        if (velocityData.x != 0 && velocityData.y != 0 && velocityData.z != 0) {
+          particle newParticle;
+          newParticle.x = newTrackData.x;
+          newParticle.y = newTrackData.y;
+          newParticle.z = newTrackData.z;
+          newParticle.x_vel = velocityData.x;
+          newParticle.y_vel = velocityData.y;
+          newParticle.z_vel = velocityData.z;
+          newParticle.colorR = color.x;
+          newParticle.colorG = color.y;
+          newParticle.colorB = color.z;
+          newParticle.colorA = 1.0f;
+          particles.push_back(newParticle);
+        }
+      } 
+
       // ADD LINE RECORDING FOR ARTIST VERSION
       if (splitLine[4].find("RECORD") == 0 &&
          (newTrackData.x != 0 || newTrackData.y != 0 || newTrackData.z != 0))
@@ -511,7 +543,7 @@ void display() {
   }
 
   // display particles
-  /*for (int i = particles.size() - 1; i >= 0; i--) {
+  for (int i = particles.size() - 1; i >= 0; i--) {
     particles[i].colorA -= 0.0025f;
     if (particles[i].colorA <= 0)
       particles.erase(particles.begin() + i);
@@ -527,7 +559,7 @@ void display() {
       glutSolidCube(0.07);
       glPopMatrix();
     }
-  }*/
+  }
 
   glutSwapBuffers();
   glutPostRedisplay();
