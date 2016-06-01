@@ -528,7 +528,7 @@ int main(int argc, char** argv)
         switchDrawingCtr--;*/
 
       Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
-      cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
+      //cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
       if (flagTranslate.Translation[2] > 2000.0 && switchDrawingCtr <= 0)
       {
         switchDrawingCtr = 360;
@@ -557,15 +557,39 @@ int main(int argc, char** argv)
 	  packet << osc::BeginBundle();
 
 
-        for (int i = 0; i < objectsToTrack.size(); i++)
-        {
-          dataToSend.clear();
-          Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
-          Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
+	float areaSummation = 0;
+
+
+
+  for (int i = 0; i < objectsToTrack.size(); i++)
+  {
+    dataToSend.clear();
+    Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
+    Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
 
 	  float x = globalTranslate.Translation[0] / -1000.0f;
 	  float y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
 	  float z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
+
+    //Area of person
+		if(i < objectsToTrack.size()-1)
+		{
+			//cout << "Computing object " << objectsToTrack[i+1] << endl;
+			//Get location of next object
+			Output_GetSegmentGlobalTranslation nextTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i+1], objectsToTrack[i+1]);
+			float nextX = nextTranslate.Translation[0] / -1000.0f;
+		    float nextY = nextTranslate.Translation[1] / 1000.0f * 1.5f;
+		    float nextZ = nextTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
+
+			//Compute the cross product
+			float prodX = (y * nextZ) - (z * nextY);
+			float prodY = (z * nextX) - (x * nextZ);
+			float prodZ = (x * nextY) - (y * nextX);
+
+			//Add magnitude to summation
+			areaSummation += sqrt( prodX*prodX + prodY * prodY + prodZ * prodZ);
+
+		}
 
 	  float xVel = (x-prevPositions[i][0])/deltaT;
 	  float yVel = (y-prevPositions[i][1])/deltaT;
@@ -575,6 +599,9 @@ int main(int argc, char** argv)
 	  float yAccel = (yVel-prevVelocities[i][1])/deltaT;
 	  float zAccel = (zVel-prevVelocities[i][2])/deltaT;
 
+
+
+
 	  prevPositions[i][0] = x;
 	  prevPositions[i][1] = y;
 	  prevPositions[i][2] = z;
@@ -583,21 +610,21 @@ int main(int argc, char** argv)
 	  prevVelocities[i][1] = yVel;
 	  prevVelocities[i][2] = zVel;
 
-          dataToSend = objectsToTrack[i];
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>(x));
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>(y));
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>(z));
+    dataToSend = objectsToTrack[i];
+    dataToSend.append("~");
+    dataToSend.append(boost::lexical_cast<string>(x));
+    dataToSend.append("~");
+    dataToSend.append(boost::lexical_cast<string>(y));
+    dataToSend.append("~");
+    dataToSend.append(boost::lexical_cast<string>(z));
 //          formatters[i] % objectsToTrack[i];
 //          formatters[i] % (globalTranslate.Translation[0] / 1000);
 //          formatters[i] % (globalTranslate.Translation[1] / 1000);
 //          formatters[i] % (globalTranslate.Translation[2] / 1000);
 //          dataToSend.append(formatters[i].str());
-          //outputFile << dataToSend << "\n";
-          //cout << dataToSend << endl;
-          dataToSend.append("\n");
+    //outputFile << dataToSend << "\n";
+    //cout << dataToSend << endl;
+    dataToSend.append("\n");
 		dataToSendAudio += "%" + dataToSend;
 
 	  if(oscDelay == 0)
@@ -621,25 +648,31 @@ int main(int argc, char** argv)
 						 << osc::EndMessage;
 	  }
 
-          if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
-            dataToSendSlaves = dataToSend + "~RECORD";
-          else
-            dataToSendSlaves = dataToSend + "~NOREC";
+    if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
+      dataToSendSlaves = dataToSend + "~RECORD";
+    else
+      dataToSendSlaves = dataToSend + "~NOREC";
 
-          if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1)
-          {
-            perror ("ERROR sendto() - real data");
-          }
-          //printf("I sent %s\n", dataToSend.c_str());
-        } // end for loop thru objectsToTrack
+    if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1)
+    {
+      perror ("ERROR sendto() - real data");
+    }
+    //printf("I sent %s\n", dataToSend.c_str());
+  } // end for loop thru objectsToTrack
 
-        if (sendto(s, dataToSendAudio.c_str(), dataToSendAudio.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
-        {
-          perror ("ERROR sendto()");
-        }
+  if (sendto(s, dataToSendAudio.c_str(), dataToSendAudio.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+  {
+    perror ("ERROR sendto()");
+  }
 
 	if(oscDelay == 0)
 	{
+		cout << (areaSummation*4.0)/2.0 << endl;
+		areaSummation = (areaSummation*4.0)/2.0;
+		packet <<  osc::BeginMessage("/area")
+					 << areaSummation
+					 << osc::EndMessage;
+
 	  packet << osc::EndBundle;
 	  socket.Send(packet.Data(), packet.Size());
 	  oscDelay++;
