@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
 case "$1" in
-	'gestureartwork')
+	'phase3')
 		cd gestureartwork
 		./vicon_launcher.sh
 	;;
 
-	'keyboard')
+	'phase2')
 		cd keyboard
 		./keyboard_launcher.sh
 	;;
 
-	'worldmap')
+	'phase1')
 		cd worldmap
 		./worldmap_launcher.sh
 	;;
