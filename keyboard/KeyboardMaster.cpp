@@ -1,7 +1,6 @@
 
 #include "Client.h"
 
-#include "/share/apps/glew/1.9.0/include/GL/glew.h"
 #include <GL/glut.h>
 
 #include <math.h>
@@ -28,6 +27,8 @@
 
 #include "../boost_1_53_0/boost/format.hpp"
 
+#define NELEMS(x)  (sizeof(x) / sizeof(x[0]))
+
 using namespace std;
 using namespace ViconDataStreamSDK::CPP;
 using boost::format;
@@ -42,10 +43,8 @@ std::string HostName = "141.219.28.17:801";
 //std::string HostName = "localhost:801";
 
 // screen width/height indicate the size of the window on our screen (not the size of the display wall). The aspect ratio must match the actual display wall.
-//const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;
-//const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
-const GLdouble SCREEN_WIDTH = (1920.0*3);
-const GLdouble SCREEN_HEIGHT = (1080.0);
+const GLdouble SCREEN_WIDTH = (1920.0*6)/8.0;
+const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
 // socket stuff
@@ -53,14 +52,6 @@ struct sockaddr_in si_other;
 int slen, s;
 int so_broadcast = 1;
 pthread_t senderThread;
-
-vector<string> objectsToTrack;
-
-//splitting rendering up across multiple displays
-double ortho_left;
-double ortho_right;
-double ortho_bottom;
-double ortho_top;
 
 // timestamp stuff
 time_t curtime;
@@ -285,95 +276,29 @@ void keyboard(unsigned char key, int x, int y)
 
 string ipAddress;
 unsigned int port;
-string texturePath;
+vector<string> objectsToTrack;
+string dataToSend;
 
-char** gargv;
-int gargc;
+int main(int argc, char** argv) {
 
-void sender()
-{
-  vector<format> formatters;
-	string dataToSend;
-
-  for (int i = 3; i < gargc; i++)
-  {
-    objectsToTrack.push_back(string(gargv[i]));
-  }
-
-  for (int i = 0; i < objectsToTrack.size(); i++)
-  {
-    formatters.push_back(format("%1%~%2%~%3%~%4%~%5%~%6%~%7%~%8%~\n"));
-  }
-
-  while (true)
-  {
-
-    dataToSend.clear();
-
-    gettimeofday(&tv, NULL);
-    curtime=tv.tv_sec;
-    strftime(timebuff, 30, "%m-%d-%Y %T.", localtime(&curtime));
-
-    // Get a frame
-    if(MyClient.GetFrame().Result != Result::Success )
-      printf("WARNING: Inside display() and there is no data from Vicon...\n");
-		else
-		{
-			for (int i = 0; i < objectsToTrack.size(); i++)
-	    {
-	      Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
-	      Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
-
-	//      for (int m = 0; m < sizeof(buf); m++) buf[m] = '|';
-
-	//      sprintf(buf, "%s~%6.3f~%6.3f~%6.3f~%6.3f~%6.3f~%6.3f\n",
-
-	      formatters[i] % objectsToTrack[i];
-	      formatters[i] % timebuff;
-	      formatters[i] % (globalTranslate.Translation[0] / 1000);
-	      formatters[i] % (globalTranslate.Translation[1] / 1000);
-	      formatters[i] % (globalTranslate.Translation[2] / 1000);
-	      formatters[i] % globalRotation.Rotation[0];
-	      formatters[i] % globalRotation.Rotation[1];
-	      formatters[i] % globalRotation.Rotation[2];
-
-	      dataToSend.append(formatters[i].str());
-
-				cout << "Trying to send data." << endl;
-				cout << dataToSend << endl;
-	    }
-
-	    if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
-			{
-	      perror ("ERROR sendto()");
-	    }
-    }
-
-    usleep(4000);
-  }
-}
-
-int main(int argc, char* argv[]) {
-
-  if (argc < 3) {
-    printf("Usage: ViconRelayMaster IP Port Objects\n");
+  if (argc < 4) {
+    printf("Usage: keyboard IP Port Objects\n");
     return 1;
   }
-
   ipAddress = string(argv[1]);
   port = atoi(argv[2]);
+  for (int i = 3; i < argc; i++) {
+    objectsToTrack.push_back(string(argv[i]));
+  }
 
-  gargv = argv;
-  gargc = argc;
-
+  atexit(exitCallback);
   viconInit(); // Vicon initialization
 
   //socket stuff
   slen=sizeof(si_other);
   so_broadcast = 1;
 
-  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) 
-  {
+  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
     perror("ERROR socket");
     exit(1);
   }
@@ -383,14 +308,49 @@ int main(int argc, char* argv[]) {
   memset((char *) &si_other, 0, sizeof(si_other));
   si_other.sin_family = AF_INET;
   si_other.sin_port = htons(port);
-  if (inet_aton(ipAddress.c_str(), &si_other.sin_addr) == 0) 
-  {
+  if (inet_aton(ipAddress.c_str(), &si_other.sin_addr) == 0) {
     fprintf(stderr, "inet_aton() failed\n");
     exit(1);
   }
 
-  sender();
+	vector<format> formatters;
+  for (int i = 0; i < objectsToTrack.size(); i++) {
+    formatters.push_back(format("%1%~%2%~%3%~%4%"));
+  }
+
+  while (true) {
+
+    dataToSend.clear();
+
+    // Get a frame
+    if(MyClient.GetFrame().Result != Result::Success )
+      printf("WARNING: Inside display() and there is no data from Vicon...\n");
+
+    for (int i = 0; i < objectsToTrack.size(); i++) {
+      Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
+      Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
+
+//      for (int m = 0; m < sizeof(buf); m++) buf[m] = '|';
+
+//      sprintf(buf, "%s~%6.3f~%6.3f~%6.3f~%6.3f~%6.3f~%6.3f\n",
+
+      formatters[i] % objectsToTrack[i];
+      formatters[i] % (globalTranslate.Translation[0] / 1000);
+      formatters[i] % (globalTranslate.Translation[1] / 1000);
+      formatters[i] % (globalTranslate.Translation[2] / 1000);
+
+      dataToSend.append(formatters[i].str());
+      dataToSend.append("\n");
+    }
+    dataToSend.append("#");
+
+    if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1) {
+      perror ("ERROR sendto()");
+    }
+
+    //printf("x is %f\n", userX);
+    //usleep(1000);
+  }
 
   return 0;
-
 }
