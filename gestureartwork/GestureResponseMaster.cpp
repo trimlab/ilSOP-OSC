@@ -571,7 +571,7 @@ int main(int argc, char** argv)
 	  float y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
 	  float z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
 
-    //Area of person
+    	//Area of person
 		if(i < objectsToTrack.size()-1)
 		{
 			//cout << "Computing object " << objectsToTrack[i+1] << endl;
@@ -629,23 +629,26 @@ int main(int argc, char** argv)
 
 	  if(oscDelay == 0)
 	  {
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
-	      		 << x
-						 << y
-						 << z
-						 << osc::EndMessage;
+	  	if( ((int) x) != 0 && ((int) y) != 0 && ((int) z) != -2)
+	  	{
+		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
+		      		 		 << x
+							 << y
+							 << z
+							 << osc::EndMessage;
 
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
-						 << xVel
-						 << yVel
-						 << zVel
-						 << osc::EndMessage;
+		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
+							 << xVel
+							 << yVel
+							 << zVel
+							 << osc::EndMessage;
 
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
-						 << xAccel
-						 << yAccel
-						 << zAccel
-						 << osc::EndMessage;
+		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
+							 << xAccel
+							 << yAccel
+							 << zAccel
+							 << osc::EndMessage;
+	  	}
 	  }
 
     if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
