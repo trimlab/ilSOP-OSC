@@ -285,6 +285,7 @@ const int dataHertz = 100;
 const int numTrackedObjects = 4;
 
 ofstream outputFile;
+ofstream csvFile;
 bool simulation = true;
 vector<string> trackNames;
 
@@ -359,6 +360,7 @@ void sender()
 	{
     outputFile.open(gargv[4]);
     flagObject = gargv[5];
+
     for (int i = 6; i < gargc; i++)
 			objectsToTrack.push_back(string(gargv[i]));
 
@@ -491,7 +493,15 @@ int main(int argc, char** argv)
   }
   else
   { // live tracking w/ Vicon
+
+    //Standard log file
     outputFile.open(gargv[4]);
+
+    //CSV log file
+    csvFile.open("test.csv");
+
+    csvFile << "Time,Object,X Position,Y Position,Z Position,X Velocity,Y Velocity,Z Velocity,X Acceleration,Y Acceleration,Z Acceleration" << "\n";
+
     flagObject = gargv[5];
 
     for (int i = 6; i < gargc; i++)
@@ -500,21 +510,22 @@ int main(int argc, char** argv)
     //vector<format> formatters;
     //for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
 
-		UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
+	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 
-		//Start timer
-		timeval tim;
-		gettimeofday(&tim, NULL);
+	//Start timer
+	timeval tim;
+    gettimeofday(&tim, NULL);
+    float runTime = 0;
 
-		//initialize previous value vectors
-		vector<vector<float> > prevPositions(objectsToTrack.size());
-		vector<vector<float> > prevVelocities(objectsToTrack.size());
+	//initialize previous value vectors
+	vector<vector<float> > prevPositions(objectsToTrack.size());
+	vector<vector<float> > prevVelocities(objectsToTrack.size());
 
-		for(int i = 0; i < objectsToTrack.size(); i++)
-		{
-			prevPositions.push_back(vector<float>(3));
-			prevVelocities.push_back(vector<float>(3));
-		}
+	for(int i = 0; i < objectsToTrack.size(); i++)
+	{
+		prevPositions.push_back(vector<float>(3));
+		prevVelocities.push_back(vector<float>(3));
+	}
 
     int oscDelay = 0;
 
@@ -549,8 +560,13 @@ int main(int argc, char** argv)
 	timeval newTime;
 	gettimeofday(&newTime, NULL);
 
-	float deltaT = (newTime.tv_usec - tim.tv_usec)/1000000.0f;
-	tim = newTime;
+	float deltaT = abs((newTime.tv_usec - tim.tv_usec)/1000000.0f);
+
+    runTime = runTime + deltaT;
+
+	cout << deltaT << endl;
+
+	gettimeofday(&tim, NULL);
 
 
 	if(oscDelay == 0)
@@ -559,7 +575,7 @@ int main(int argc, char** argv)
 
 	float areaSummation = 0;
 
-
+  float x,y,z,xVel,yVel,zVel,xAccel,yAccel,zAccel;
 
   for (int i = 0; i < objectsToTrack.size(); i++)
   {
@@ -567,9 +583,9 @@ int main(int argc, char** argv)
     Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
     Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
 
-	  float x = globalTranslate.Translation[0] / -1000.0f;
-	  float y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
-	  float z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
+	  x = globalTranslate.Translation[0] / -1000.0f;
+	  y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
+	  z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
 
     	//Area of person
 		if(i < objectsToTrack.size()-1)
@@ -591,13 +607,19 @@ int main(int argc, char** argv)
 
 		}
 
-	  float xVel = (x-prevPositions[i][0])/deltaT;
-	  float yVel = (y-prevPositions[i][1])/deltaT;
-	  float zVel = (z-prevPositions[i][2])/deltaT;
+	  xVel = (x-prevPositions[i][0])/deltaT;
+	  yVel = (y-prevPositions[i][1])/deltaT;
+	  zVel = (z-prevPositions[i][2])/deltaT;
 
-	  float xAccel = (xVel-prevVelocities[i][0])/deltaT;
-	  float yAccel = (yVel-prevVelocities[i][1])/deltaT;
-	  float zAccel = (zVel-prevVelocities[i][2])/deltaT;
+	  xAccel = (xVel-prevVelocities[i][0])/deltaT;
+	  yAccel = (yVel-prevVelocities[i][1])/deltaT;
+	  zAccel = (zVel-prevVelocities[i][2])/deltaT;
+
+  	  //Log position, velocity, acceleration to CSV
+      csvFile << runTime << "," << objectsToTrack[i] << ",";
+      csvFile << x << "," << y << "," << z << ",";
+      csvFile << xVel << "," << yVel << "," << zVel << ",";
+      csvFile << xAccel << "," << yAccel << "," << zAccel << "\n";
 
 
 
@@ -622,34 +644,31 @@ int main(int argc, char** argv)
 //          formatters[i] % (globalTranslate.Translation[1] / 1000);
 //          formatters[i] % (globalTranslate.Translation[2] / 1000);
 //          dataToSend.append(formatters[i].str());
-    //outputFile << dataToSend << "\n";
+//    outputFile << dataToSend << "\n";
     //cout << dataToSend << endl;
     dataToSend.append("\n");
 		dataToSendAudio += "%" + dataToSend;
 
-	  if(oscDelay == 0)
-	  {
-	  	if( ((int) x) != 0 && ((int) y) != 0 && ((int) z) != -2)
-	  	{
-		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
-		      		 		 << x
-							 << y
-							 << z
-							 << osc::EndMessage;
+  if(oscDelay == 0)
+  {
+	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
+	      		 		 << x
+						 << y
+						 << z
+						 << osc::EndMessage;
 
-		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
-							 << xVel
-							 << yVel
-							 << zVel
-							 << osc::EndMessage;
+	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
+						 << xVel
+						 << yVel
+						 << zVel
+						 << osc::EndMessage;
 
-		    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
-							 << xAccel
-							 << yAccel
-							 << zAccel
-							 << osc::EndMessage;
-	  	}
-	  }
+	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
+						 << xAccel
+						 << yAccel
+						 << zAccel
+						 << osc::EndMessage;
+	}
 
     if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
       dataToSendSlaves = dataToSend + "~RECORD";
@@ -670,7 +689,7 @@ int main(int argc, char** argv)
 
 	if(oscDelay == 0)
 	{
-		cout << (areaSummation*4.0)/2.0 << endl;
+		//cout << (areaSummation*4.0)/2.0 << endl;
 		areaSummation = (areaSummation*4.0)/2.0;
 		packet <<  osc::BeginMessage("/area")
 					 << areaSummation
@@ -678,6 +697,7 @@ int main(int argc, char** argv)
 
 	  packet << osc::EndBundle;
 	  socket.Send(packet.Data(), packet.Size());
+
 	  oscDelay++;
 	}
 	else if(oscDelay == 8)
