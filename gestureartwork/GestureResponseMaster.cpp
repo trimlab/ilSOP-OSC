@@ -513,8 +513,8 @@ int main(int argc, char** argv)
 	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 
 	//Start timer
-	timeval tim;
-    gettimeofday(&tim, NULL);
+	timeval oldTime;
+    gettimeofday(&oldTime, NULL);
     float runTime = 0;
 
 	//initialize previous value vectors
@@ -559,14 +559,14 @@ int main(int argc, char** argv)
 
 	timeval newTime;
 	gettimeofday(&newTime, NULL);
+	float deltaT = (newTime.tv_sec * 1000 + newTime.tv_usec / 1000) - (oldTime.tv_sec * 1000 + oldTime.tv_usec / 1000);
+	deltaT /= 1000.0f;
 
-	float deltaT = abs((newTime.tv_usec - tim.tv_usec)/1000000.0f);
+  runTime = runTime + deltaT;
 
-    runTime = runTime + deltaT;
+	cout << runTime << endl;
 
-	cout << deltaT << endl;
-
-	gettimeofday(&tim, NULL);
+	gettimeofday(&oldTime, NULL);
 
 
 	if(oscDelay == 0)
