@@ -53,19 +53,19 @@ namespace
 		switch( i_Direction )
 		{
 			case Direction::Forward:
-				return "Forward";
+			return "Forward";
 			case Direction::Backward:
-				return "Backward";
+			return "Backward";
 			case Direction::Left:
-				return "Left";
+			return "Left";
 			case Direction::Right:
-				return "Right";
+			return "Right";
 			case Direction::Up:
-				return "Up";
+			return "Up";
 			case Direction::Down:
-				return "Down";
+			return "Down";
 			default:
-				return "Unknown";
+			return "Unknown";
 		}
 	}
 
@@ -74,10 +74,10 @@ namespace
 		switch( i_DeviceType )
 		{
 			case DeviceType::ForcePlate:
-				return "ForcePlate";
+			return "ForcePlate";
 			case DeviceType::Unknown:
 			default:
-				return "Unknown";
+			return "Unknown";
 		}
 	}
 
@@ -86,173 +86,173 @@ namespace
 		switch( i_Unit )
 		{
 			case Unit::Meter:
-				return "Meter";
+			return "Meter";
 			case Unit::Volt:
-				return "Volt";
+			return "Volt";
 			case Unit::NewtonMeter:
-				return "NewtonMeter";
+			return "NewtonMeter";
 			case Unit::Newton:
-				return "Newton";
+			return "Newton";
 			case Unit::Kilogram:
-				return "Kilogram";
+			return "Kilogram";
 			case Unit::Second:
-				return "Second";
+			return "Second";
 			case Unit::Ampere:
-				return "Ampere";
+			return "Ampere";
 			case Unit::Kelvin:
-				return "Kelvin";
+			return "Kelvin";
 			case Unit::Mole:
-				return "Mole";
+			return "Mole";
 			case Unit::Candela:
-				return "Candela";
+			return "Candela";
 			case Unit::Radian:
-				return "Radian";
+			return "Radian";
 			case Unit::Steradian:
-				return "Steradian";
+			return "Steradian";
 			case Unit::MeterSquared:
-				return "MeterSquared";
+			return "MeterSquared";
 			case Unit::MeterCubed:
-				return "MeterCubed";
+			return "MeterCubed";
 			case Unit::MeterPerSecond:
-				return "MeterPerSecond";
+			return "MeterPerSecond";
 			case Unit::MeterPerSecondSquared:
-				return "MeterPerSecondSquared";
+			return "MeterPerSecondSquared";
 			case Unit::RadianPerSecond:
-				return "RadianPerSecond";
+			return "RadianPerSecond";
 			case Unit::RadianPerSecondSquared:
-				return "RadianPerSecondSquared";
+			return "RadianPerSecondSquared";
 			case Unit::Hertz:
-				return "Hertz";
+			return "Hertz";
 			case Unit::Joule:
-				return "Joule";
+			return "Joule";
 			case Unit::Watt:
-				return "Watt";
+			return "Watt";
 			case Unit::Pascal:
-				return "Pascal";
+			return "Pascal";
 			case Unit::Lumen:
-				return "Lumen";
+			return "Lumen";
 			case Unit::Lux:
-				return "Lux";
+			return "Lux";
 			case Unit::Coulomb:
-				return "Coulomb";
+			return "Coulomb";
 			case Unit::Ohm:
-				return "Ohm";
+			return "Ohm";
 			case Unit::Farad:
-				return "Farad";
+			return "Farad";
 			case Unit::Weber:
-				return "Weber";
+			return "Weber";
 			case Unit::Tesla:
-				return "Tesla";
+			return "Tesla";
 			case Unit::Henry:
-				return "Henry";
+			return "Henry";
 			case Unit::Siemens:
-				return "Siemens";
+			return "Siemens";
 			case Unit::Becquerel:
-				return "Becquerel";
+			return "Becquerel";
 			case Unit::Gray:
-				return "Gray";
+			return "Gray";
 			case Unit::Sievert:
-				return "Sievert";
+			return "Sievert";
 			case Unit::Katal:
-				return "Katal";
+			return "Katal";
 
 			case Unit::Unknown:
 			default:
-				return "Unknown";
+			return "Unknown";
 		}
 	}
 }
 
 void viconExit()
 {
-    MyClient.DisableSegmentData();
-//    MyClient.DisableMarkerData();
-//    MyClient.DisableUnlabeledMarkerData();
-//    MyClient.DisableDeviceData();
+	MyClient.DisableSegmentData();
+	//    MyClient.DisableMarkerData();
+	//    MyClient.DisableUnlabeledMarkerData();
+	//    MyClient.DisableDeviceData();
 
 	// TODO: Disconnect seems to cause a hang. -Scott Kuhl
-    // Disconnect and dispose
-    int t = clock();
-    std::cout << " Disconnecting..." << std::endl;
-    MyClient.Disconnect();
-    int dt = clock() - t;
-    double secs = (double) (dt)/(double)CLOCKS_PER_SEC;
-    std::cout << " Disconnect time = " << secs << " secs" << std::endl;
+	// Disconnect and dispose
+	int t = clock();
+	std::cout << " Disconnecting..." << std::endl;
+	MyClient.Disconnect();
+	int dt = clock() - t;
+	double secs = (double) (dt)/(double)CLOCKS_PER_SEC;
+	std::cout << " Disconnect time = " << secs << " secs" << std::endl;
 }
 
 void viconInit()
 {
-    // Connect to a server
-    std::cout << "Connecting to " << HostName << " ..." << std::flush;
+	// Connect to a server
+	std::cout << "Connecting to " << HostName << " ..." << std::flush;
 	int attemptConnectCount = 0;
 	const int MAX_CONNECT_ATTEMPTS=2;
-    while( !MyClient.IsConnected().Connected && attemptConnectCount < MAX_CONNECT_ATTEMPTS)
-    {
+	while( !MyClient.IsConnected().Connected && attemptConnectCount < MAX_CONNECT_ATTEMPTS)
+	{
 		attemptConnectCount++;
 		bool ok = false;
 		ok =( MyClient.Connect( HostName ).Result == Result::Success );
 		if(!ok)
-			std::cout << "Warning - connect failed..." << std::endl;
+		std::cout << "Warning - connect failed..." << std::endl;
 		std::cout << ".";
 		sleep(1);
-    }
+	}
 	if(attemptConnectCount == MAX_CONNECT_ATTEMPTS)
 	{
 		printf("Giving up making connection to Vicon system\n");
 		return;
 	}
-    std::cout << std::endl;
+	std::cout << std::endl;
 
-    // Enable some different data types
-    MyClient.EnableSegmentData();
-    //MyClient.EnableMarkerData();
-    //MyClient.EnableUnlabeledMarkerData();
-    //MyClient.EnableDeviceData();
+	// Enable some different data types
+	MyClient.EnableSegmentData();
+	//MyClient.EnableMarkerData();
+	//MyClient.EnableUnlabeledMarkerData();
+	//MyClient.EnableDeviceData();
 
-    std::cout << "Segment Data Enabled: "          << Adapt( MyClient.IsSegmentDataEnabled().Enabled )         << std::endl;
-    std::cout << "Marker Data Enabled: "           << Adapt( MyClient.IsMarkerDataEnabled().Enabled )          << std::endl;
-    std::cout << "Unlabeled Marker Data Enabled: " << Adapt( MyClient.IsUnlabeledMarkerDataEnabled().Enabled ) << std::endl;
-    std::cout << "Device Data Enabled: "           << Adapt( MyClient.IsDeviceDataEnabled().Enabled )          << std::endl;
+	std::cout << "Segment Data Enabled: "          << Adapt( MyClient.IsSegmentDataEnabled().Enabled )         << std::endl;
+	std::cout << "Marker Data Enabled: "           << Adapt( MyClient.IsMarkerDataEnabled().Enabled )          << std::endl;
+	std::cout << "Unlabeled Marker Data Enabled: " << Adapt( MyClient.IsUnlabeledMarkerDataEnabled().Enabled ) << std::endl;
+	std::cout << "Device Data Enabled: "           << Adapt( MyClient.IsDeviceDataEnabled().Enabled )          << std::endl;
 
-    // Set the streaming mode
-    //MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPull );
-    // MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPullPreFetch );
-    MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ServerPush );
+	// Set the streaming mode
+	//MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPull );
+	// MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPullPreFetch );
+	MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ServerPush );
 
-    // Set the global up axis
-    MyClient.SetAxisMapping( Direction::Forward,
-                             Direction::Left,
-                             Direction::Up ); // Z-up
-    // MyClient.SetGlobalUpAxis( Direction::Forward,
-    //                           Direction::Up,
-    //                           Direction::Right ); // Y-up
+	// Set the global up axis
+	MyClient.SetAxisMapping( Direction::Forward,
+		Direction::Left,
+		Direction::Up ); // Z-up
+		// MyClient.SetGlobalUpAxis( Direction::Forward,
+		//                           Direction::Up,
+		//                           Direction::Right ); // Y-up
 
-    Output_GetAxisMapping _Output_GetAxisMapping = MyClient.GetAxisMapping();
-    std::cout << "Axis Mapping: X-" << Adapt( _Output_GetAxisMapping.XAxis )
-			  << " Y-" << Adapt( _Output_GetAxisMapping.YAxis )
-			  << " Z-" << Adapt( _Output_GetAxisMapping.ZAxis ) << std::endl;
+		Output_GetAxisMapping _Output_GetAxisMapping = MyClient.GetAxisMapping();
+		std::cout << "Axis Mapping: X-" << Adapt( _Output_GetAxisMapping.XAxis )
+		<< " Y-" << Adapt( _Output_GetAxisMapping.YAxis )
+		<< " Z-" << Adapt( _Output_GetAxisMapping.ZAxis ) << std::endl;
 
-    // Discover the version number
-    Output_GetVersion _Output_GetVersion = MyClient.GetVersion();
-    std::cout << "Version: " << _Output_GetVersion.Major << "."
-			  << _Output_GetVersion.Minor << "."
-			  << _Output_GetVersion.Point << std::endl;
+		// Discover the version number
+		Output_GetVersion _Output_GetVersion = MyClient.GetVersion();
+		std::cout << "Version: " << _Output_GetVersion.Major << "."
+		<< _Output_GetVersion.Minor << "."
+		<< _Output_GetVersion.Point << std::endl;
 
-}
+	}
 
 
 
-// an atexit() callback:
-void exitCallback()
-{
-	viconExit();
-	return;
-}
+	// an atexit() callback:
+	void exitCallback()
+	{
+		viconExit();
+		return;
+	}
 
-/*void keyboard(unsigned char key, int x, int y)
-{
+	/*void keyboard(unsigned char key, int x, int y)
+	{
 	if (key == 27 || key == 'q')  // escape key, exit program
-		exit(0);
+	exit(0);
 }*/
 
 // end of Vicon stuff /////////////////////////////////////////////////////////////////////////////
@@ -276,9 +276,9 @@ const GLdouble SCREEN_HEIGHT = (1080.0*4)/8.0;
 const float screenAspectRatio = SCREEN_WIDTH/SCREEN_HEIGHT;
 
 typedef struct trackable {
-  float x;
-  float y;
-  float z;
+	float x;
+	float y;
+	float z;
 } trackable;
 
 const int dataHertz = 100;
@@ -298,39 +298,39 @@ int switchDrawingCtr = 0;
 int totalCtr = 0;
 // Artist performance variable **CUSTOMIZABLE**
 const int UPDATE_COUNTER = 20;  // A new line will be recorded
-                                 //(Vicon Update Rate / UPDATE_COUNTER) * number_of_tracked_objects
-                                 // times/second.
-                                 // So, assuming a Vicon update rate of about 100 Hz and if
-                                 // UPDATE_COUNTER is set to 40 and 2 objects are being tracked, a new line is recorded
-                                 // ~5 times per second.
-                                 // The higher this value, the nicer the lines will look, but the more quickly
-                                 // the buffer will fill up. Tweak this value to find a
-                                 // good balance.
+//(Vicon Update Rate / UPDATE_COUNTER) * number_of_tracked_objects
+// times/second.
+// So, assuming a Vicon update rate of about 100 Hz and if
+// UPDATE_COUNTER is set to 40 and 2 objects are being tracked, a new line is recorded
+// ~5 times per second.
+// The higher this value, the nicer the lines will look, but the more quickly
+// the buffer will fill up. Tweak this value to find a
+// good balance.
 
 void error(const char *msg) {
-  perror(msg);
-  exit(1);
+	perror(msg);
+	exit(1);
 }
 
 void closeProgram() {
-  exit(0);
+	exit(0);
 }
 
 void display() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glutSwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glutSwapBuffers();
 }
 
 bool recording = false;
 
 void gtfo() {
-  if (!simulation) outputFile.close();
-  exit(0);
+	if (!simulation) outputFile.close();
+	exit(0);
 }
 
 void keyboard(unsigned char key, int x, int y) {
-  if (key == 'x') gtfo();
-  else if (key == ' ') recording = !recording;
+	if (key == 'x') gtfo();
+	else if (key == ' ') recording = !recording;
 }
 
 int gargc;
@@ -338,184 +338,185 @@ char** gargv;
 
 void sender()
 {
-  if (simulation)
+	if (simulation)
 	{ // read from data dump
-    string line;
-    ifstream inputFile(gargv[1]);
-    if (inputFile.is_open()) {
-      while (inputFile.good()) {
-        getline(inputFile, line);
-        sprintf(buf, "%s", line.c_str());
-        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
-          slen) == -1) error("ERROR sendto()");
-        usleep(1000);
-      }
-    } else {
-      printf("Unable to open file\n");
-      exit(1);
-    }
-    inputFile.close();
-  }
+		string line;
+		ifstream inputFile(gargv[1]);
+		if (inputFile.is_open()) {
+			while (inputFile.good()) {
+				getline(inputFile, line);
+				sprintf(buf, "%s", line.c_str());
+				if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
+				slen) == -1) error("ERROR sendto()");
+				usleep(1000);
+			}
+		} else {
+			printf("Unable to open file\n");
+			exit(1);
+		}
+		inputFile.close();
+	}
 	else // live tracking w/ Vicon
 	{
-    outputFile.open(gargv[4]);
-    flagObject = gargv[5];
+		outputFile.open(gargv[4]);
+		flagObject = gargv[5];
 
-    for (int i = 6; i < gargc; i++)
-			objectsToTrack.push_back(string(gargv[i]));
+		for (int i = 6; i < gargc; i++)
+		objectsToTrack.push_back(string(gargv[i]));
 
-    //vector<format> formatters;
-    //for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
-    while (true)
+		//vector<format> formatters;
+		//for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
+		while (true)
 		{
-      totalCtr++;
-      if (MyClient.GetFrame().Result != Result::Success )
-        printf("WARNING: Inside display() and there is no data from Vicon...\n");
-      if (switchDrawingCtr > 0) switchDrawingCtr--;
-      Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
-      if (flagTranslate.Translation[2] > 2.0 && switchDrawingCtr <= 0)
-      {
-        switchDrawingCtr = 360;
-        drawingOn = !drawingOn;
-      }
-      if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
+			totalCtr++;
+			if (MyClient.GetFrame().Result != Result::Success )
+			printf("WARNING: Inside display() and there is no data from Vicon...\n");
+			if (switchDrawingCtr > 0) switchDrawingCtr--;
+			Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
+			if (flagTranslate.Translation[2] > 2.0 && switchDrawingCtr <= 0)
 			{
-        for (int i = 0; i < objectsToTrack.size(); i++)
+				switchDrawingCtr = 360;
+				drawingOn = !drawingOn;
+			}
+			if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
+			{
+				for (int i = 0; i < objectsToTrack.size(); i++)
 				{
-          dataToSend.clear();
-          Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
-          Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
-          dataToSend = objectsToTrack[i];
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[0] / 1000.0f));
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[1] / 1000.0f));
-          dataToSend.append("~");
-          dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[2] / 1000.0f));
-//          formatters[i] % objectsToTrack[i];
-//          formatters[i] % (globalTranslate.Translation[0] / 1000);
-//          formatters[i] % (globalTranslate.Translation[1] / 1000);
-//          formatters[i] % (globalTranslate.Translation[2] / 1000);
-//          dataToSend.append(formatters[i].str());
-          outputFile << dataToSend << "\n";
-          dataToSend.append("\n");
-          if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+					dataToSend.clear();
+					Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
+					Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
+					dataToSend = objectsToTrack[i];
+					dataToSend.append("~");
+					dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[0] / 1000.0f));
+					dataToSend.append("~");
+					dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[1] / 1000.0f));
+					dataToSend.append("~");
+					dataToSend.append(boost::lexical_cast<string>((float)globalTranslate.Translation[2] / 1000.0f));
+					//          formatters[i] % objectsToTrack[i];
+					//          formatters[i] % (globalTranslate.Translation[0] / 1000);
+					//          formatters[i] % (globalTranslate.Translation[1] / 1000);
+					//          formatters[i] % (globalTranslate.Translation[2] / 1000);
+					//          dataToSend.append(formatters[i].str());
+					outputFile << dataToSend << "\n";
+					dataToSend.append("\n");
+					if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
 					{
-            perror ("ERROR sendto()");
-          }
+						perror ("ERROR sendto()");
+					}
 
-//printf("I sent %s\n", dataToSend.c_str());
-        } // end for loop thru objectsToTrack
-      } // end ifDrawingOn
-    }
-  } // end live tracking w/ Vicon
+					//printf("I sent %s\n", dataToSend.c_str());
+				} // end for loop thru objectsToTrack
+			} // end ifDrawingOn
+		}
+	} // end live tracking w/ Vicon
 }
 
 int main(int argc, char** argv)
 {
-  if (argc < 2) {
-    printf("USAGE:\n");
-    printf("Playback mode:    GestureResponseMaster input_filename ip_address port\n");
-    printf("Live tracking:    GestureResponseMaster FALSE ip_address port output_filename flag_object objects_to_track\n");
-    return 1;
-  }
+	if (argc < 2) {
+		printf("USAGE:\n");
+		printf("Playback mode:    GestureResponseMaster input_filename ip_address port\n");
+		printf("Live tracking:    GestureResponseMaster FALSE ip_address port output_filename flag_object objects_to_track\n");
+		return 1;
+	}
 
-  gargc = argc;
-  gargv = argv;
+	gargc = argc;
+	gargv = argv;
 
-  ipAddress = string(argv[2]);
-  port = atoi(argv[3]);
+	ipAddress = string(argv[2]);
+	port = atoi(argv[3]);
 
-  // socket setup
-  slen=sizeof(si_other);
-  if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket - audio");
-  memset((char *) &si_other, 0, sizeof(si_other));
-  si_other.sin_family = AF_INET;
-  si_other.sin_port = htons(port);
-  if (inet_aton(ipAddress.c_str(), &si_other.sin_addr) == 0) {
-    fprintf(stderr, "inet_aton() failed\n");
-    exit(1);
-  }
+	// socket setup
+	slen=sizeof(si_other);
+	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket - audio");
+	memset((char *) &si_other, 0, sizeof(si_other));
+	si_other.sin_family = AF_INET;
+	si_other.sin_port = htons(port);
+	if (inet_aton(ipAddress.c_str(), &si_other.sin_addr) == 0) {
+		fprintf(stderr, "inet_aton() failed\n");
+		exit(1);
+	}
 
-  slen2=sizeof(si_other2);
-  if ((s2=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket - broadcast");
-  setsockopt(s2, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
-  memset((char *) &si_other2, 0, sizeof(si_other2));
-  si_other2.sin_family = AF_INET;
-  si_other2.sin_port = htons(PORT);
-  if (inet_aton(SEND_IP, &si_other2.sin_addr) == 0) {
-    fprintf(stderr, "inet_aton() failed - broadcast\n");
-    exit(1);
-  }
-  atexit(exitCallback);
-  viconInit(); // Vicon initialization
+	slen2=sizeof(si_other2);
+	if ((s2=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) error("ERROR socket - broadcast");
+	setsockopt(s2, SOL_SOCKET, SO_BROADCAST, &so_broadcast, sizeof(so_broadcast));
+	memset((char *) &si_other2, 0, sizeof(si_other2));
+	si_other2.sin_family = AF_INET;
+	si_other2.sin_port = htons(PORT);
+	if (inet_aton(SEND_IP, &si_other2.sin_addr) == 0) {
+		fprintf(stderr, "inet_aton() failed - broadcast\n");
+		exit(1);
+	}
+	atexit(exitCallback);
+	viconInit(); // Vicon initialization
 
-  // OGL stuff
-  /*glutInit(&argc, argv);
-  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize(200, 200);
-  glutInitWindowPosition(0, 0);
-  glutCreateWindow(argv[0]);
-  glutKeyboardFunc(keyboard);
-  glClearColor(1.0,1.0,1.0, 1);
-  glutDisplayFunc(display); */
-  // end OGL stuff
+	// OGL stuff
+	/*glutInit(&argc, argv);
+	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
+	glutInitWindowSize(200, 200);
+	glutInitWindowPosition(0, 0);
+	glutCreateWindow(argv[0]);
+	glutKeyboardFunc(keyboard);
+	glClearColor(1.0,1.0,1.0, 1);
+	glutDisplayFunc(display); */
+	// end OGL stuff
 
-  if (strcmp(argv[1], "FALSE") == 0) simulation = false;
-  else simulation = true;
+	if (strcmp(argv[1], "FALSE") == 0) simulation = false;
+	else simulation = true;
 
-  /*if (pthread_create(&senderThread, NULL, sender, NULL) != 0) {
-      perror("Can't start thread, terminating\n");
-      return 1;
-  } */
+	/*if (pthread_create(&senderThread, NULL, sender, NULL) != 0) {
+	perror("Can't start thread, terminating\n");
+	return 1;
+} */
 
-  //glutMainLoop();
+//glutMainLoop();
 
-  if (simulation)
-  { // read from data dump
-    string line;
-    ifstream inputFile(gargv[1]);
-    if (inputFile.is_open()) {
-      while (inputFile.good()) {
-        getline(inputFile, line);
-        sprintf(buf, "%s", line.c_str());
-        if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
-          slen) == -1) error("ERROR sendto()");
-        usleep(1000);
-      }
-    }
-     else
-     {
-      printf("Unable to open file\n");
-      exit(1);
-    }
-    inputFile.close();
-  }
-  else
-  { // live tracking w/ Vicon
+if (simulation)
+{ // read from data dump
+	string line;
+	ifstream inputFile(gargv[1]);
+	if (inputFile.is_open()) {
+		while (inputFile.good()) {
+			getline(inputFile, line);
+			sprintf(buf, "%s", line.c_str());
+			if (sendto(s, buf, BUFLEN, 0, (struct sockaddr*)&si_other,
+			slen) == -1) error("ERROR sendto()");
+			usleep(1000);
+		}
+	}
+	else
+	{
+		printf("Unable to open file\n");
+		exit(1);
+	}
+	inputFile.close();
+}
+else
+{ // live tracking w/ Vicon
 
-    //Standard log file
-    outputFile.open(gargv[4]);
+	//Standard log file
+	outputFile.open(gargv[4]);
 
-    //CSV log file
-    csvFile.open("test.csv");
+	//CSV log file
+	csvFile.open("test.csv");
 
-    csvFile << "Time,Object,X Position,Y Position,Z Position,X Velocity,Y Velocity,Z Velocity,X Acceleration,Y Acceleration,Z Acceleration" << "\n";
+	csvFile << "Time,Object,X Position,Y Position,Z Position,X Velocity,Y Velocity,Z Velocity,X Acceleration,Y Acceleration,Z Acceleration" << "\n";
 
-    flagObject = gargv[5];
+	flagObject = gargv[5];
 
-    for (int i = 6; i < gargc; i++)
-      objectsToTrack.push_back(string(gargv[i]));
+	for (int i = 6; i < gargc; i++)
+	objectsToTrack.push_back(string(gargv[i]));
 
-    //vector<format> formatters;
-    //for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
+	//vector<format> formatters;
+	//for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
 
 	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
+	UdpTransmitSocket wekinatorSocket(IpEndpointName("141.219.28.17", 6449));
 
 	//Start timer
 	timeval oldTime;
-    gettimeofday(&oldTime, NULL);
-    float runTime = 0;
+	gettimeofday(&oldTime, NULL);
+	float runTime = 0;
 
 	//initialize previous value vectors
 	vector<vector<float> > prevPositions(objectsToTrack.size());
@@ -527,196 +528,212 @@ int main(int argc, char** argv)
 		prevVelocities.push_back(vector<float>(3));
 	}
 
-    int oscDelay = 0;
+	int oscDelay = 0;
 
-    while (true)
-    {
-      if (MyClient.GetFrame().Result != Result::Success )
-        printf("WARNING: Inside display() and there is no data from Vicon...\n");
-
-
-      /*if (switchDrawingCtr > 0)
-        switchDrawingCtr--;*/
-
-      Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
-      //cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
-      if (flagTranslate.Translation[2] > 2000.0 && switchDrawingCtr <= 0)
-      {
-        switchDrawingCtr = 360;
-        drawingOn = !drawingOn;
-
-        if (drawingOn)
-          printf("Drawing has switched from OFF to ON\n");
-        else
-          printf("Drawing has switched from ON to OFF\n");
-      }
-
-      if (true)
-      {
-	string dataToSendAudio, dataToSendSlaves;
-	char buffer[1024];
-	osc::OutboundPacketStream packet (buffer, 1024);
-
-	timeval newTime;
-	gettimeofday(&newTime, NULL);
-	float deltaT = (newTime.tv_sec * 1000 + newTime.tv_usec / 1000) - (oldTime.tv_sec * 1000 + oldTime.tv_usec / 1000);
-	deltaT /= 1000.0f;
-
-  runTime = runTime + deltaT;
-
-	cout << runTime << endl;
-
-	gettimeofday(&oldTime, NULL);
+	while (true)
+	{
+		if (MyClient.GetFrame().Result != Result::Success )
+		printf("WARNING: Inside display() and there is no data from Vicon...\n");
 
 
-	if(oscDelay == 0)
-	  packet << osc::BeginBundle();
+		/*if (switchDrawingCtr > 0)
+		switchDrawingCtr--;*/
 
-
-	float areaSummation = 0;
-
-  float x,y,z,xVel,yVel,zVel,xAccel,yAccel,zAccel;
-
-  for (int i = 0; i < objectsToTrack.size(); i++)
-  {
-    dataToSend.clear();
-    Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
-    Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
-
-	  x = globalTranslate.Translation[0] / -1000.0f;
-	  y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
-	  z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
-
-    	//Area of person
-		if(i < objectsToTrack.size()-1)
+		Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
+		//cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
+		if (flagTranslate.Translation[2] > 2000.0 && switchDrawingCtr <= 0)
 		{
-			//cout << "Computing object " << objectsToTrack[i+1] << endl;
-			//Get location of next object
-			Output_GetSegmentGlobalTranslation nextTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i+1], objectsToTrack[i+1]);
-			float nextX = nextTranslate.Translation[0] / -1000.0f;
-		    float nextY = nextTranslate.Translation[1] / 1000.0f * 1.5f;
-		    float nextZ = nextTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
+			switchDrawingCtr = 360;
+			drawingOn = !drawingOn;
 
-			//Compute the cross product
-			float prodX = (y * nextZ) - (z * nextY);
-			float prodY = (z * nextX) - (x * nextZ);
-			float prodZ = (x * nextY) - (y * nextX);
-
-			//Add magnitude to summation
-			areaSummation += sqrt( prodX*prodX + prodY * prodY + prodZ * prodZ);
-
+			if (drawingOn)
+			printf("Drawing has switched from OFF to ON\n");
+			else
+			printf("Drawing has switched from ON to OFF\n");
 		}
 
-	  xVel = (x-prevPositions[i][0])/deltaT;
-	  yVel = (y-prevPositions[i][1])/deltaT;
-	  zVel = (z-prevPositions[i][2])/deltaT;
+		if (true)
+		{
+			string dataToSendAudio, dataToSendSlaves;
+			char buffer[1024];
+			char wekinatorBuffer[1024];
+			osc::OutboundPacketStream packet (buffer, 1024);
+			osc::OutboundPacketStream wekinatorPacket(wekinatorBuffer, 1024);
 
-	  xAccel = (xVel-prevVelocities[i][0])/deltaT;
-	  yAccel = (yVel-prevVelocities[i][1])/deltaT;
-	  zAccel = (zVel-prevVelocities[i][2])/deltaT;
+			timeval newTime;
+			gettimeofday(&newTime, NULL);
 
-  	  //Log position, velocity, acceleration to CSV
-      csvFile << runTime << "," << objectsToTrack[i] << ",";
-      csvFile << x << "," << y << "," << z << ",";
-      csvFile << xVel << "," << yVel << "," << zVel << ",";
-      csvFile << xAccel << "," << yAccel << "," << zAccel << "\n";
+			float deltaT = (newTime.tv_sec * 1000 + newTime.tv_usec / 1000) - (oldTime.tv_sec * 1000 + oldTime.tv_usec / 1000);
+			deltaT = deltaT / 1000.0f;
+
+			runTime = runTime + deltaT;
+
+			cout << deltaT << endl;
+
+			gettimeofday(&oldTime, NULL);
 
 
+			if(oscDelay == 0)
+			{
+				packet << osc::BeginBundle();
+				wekinatorPacket << osc::BeginMessage("/positions");
+			}
 
 
-	  prevPositions[i][0] = x;
-	  prevPositions[i][1] = y;
-	  prevPositions[i][2] = z;
+			float areaSummation = 0;
 
-	  prevVelocities[i][0] = xVel;
-	  prevVelocities[i][1] = yVel;
-	  prevVelocities[i][2] = zVel;
+			float x,y,z,xVel,yVel,zVel,xAccel,yAccel,zAccel;
 
-    dataToSend = objectsToTrack[i];
-    dataToSend.append("~");
-    dataToSend.append(boost::lexical_cast<string>(x));
-    dataToSend.append("~");
-    dataToSend.append(boost::lexical_cast<string>(y));
-    dataToSend.append("~");
-    dataToSend.append(boost::lexical_cast<string>(z));
-//          formatters[i] % objectsToTrack[i];
-//          formatters[i] % (globalTranslate.Translation[0] / 1000);
-//          formatters[i] % (globalTranslate.Translation[1] / 1000);
-//          formatters[i] % (globalTranslate.Translation[2] / 1000);
-//          dataToSend.append(formatters[i].str());
-//    outputFile << dataToSend << "\n";
-    //cout << dataToSend << endl;
-    dataToSend.append("\n");
-		dataToSendAudio += "%" + dataToSend;
+			for (int i = 0; i < objectsToTrack.size(); i++)
+			{
+				dataToSend.clear();
+				Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
+				Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
 
-  if(oscDelay == 0)
-  {
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
-	      		 		 << x
-						 << y
-						 << z
-						 << osc::EndMessage;
+				x = globalTranslate.Translation[0] / -1000.0f;
+				y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
+				z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
 
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
-						 << xVel
-						 << yVel
-						 << zVel
-						 << osc::EndMessage;
+				//Area of person
+				if(i < objectsToTrack.size()-1)
+				{
+					//cout << "Computing object " << objectsToTrack[i+1] << endl;
+					//Get location of next object
+					Output_GetSegmentGlobalTranslation nextTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i+1], objectsToTrack[i+1]);
+					float nextX = nextTranslate.Translation[0] / -1000.0f;
+					float nextY = nextTranslate.Translation[1] / 1000.0f * 1.5f;
+					float nextZ = nextTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
 
-	    packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
-						 << xAccel
-						 << yAccel
-						 << zAccel
-						 << osc::EndMessage;
+					//Compute the cross product
+					float prodX = (y * nextZ) - (z * nextY);
+					float prodY = (z * nextX) - (x * nextZ);
+					float prodZ = (x * nextY) - (y * nextX);
+
+					//Add magnitude to summation
+					areaSummation += sqrt( prodX*prodX + prodY * prodY + prodZ * prodZ);
+
+				}
+
+				xVel = (x-prevPositions[i][0])/deltaT;
+				yVel = (y-prevPositions[i][1])/deltaT;
+				zVel = (z-prevPositions[i][2])/deltaT;
+
+				xAccel = (x-prevPositions[i][0])/(deltaT*deltaT);
+				yAccel = (y-prevPositions[i][1])/(deltaT*deltaT);
+				zAccel = (z-prevPositions[i][2])/(deltaT*deltaT);
+
+				cout << "X: " << xAccel
+					<< "  Y: " << yAccel
+					<< "  Z: " << zAccel << endl;
+
+				//Log position, velocity, acceleration to CSV
+				csvFile << runTime << "," << objectsToTrack[i] << ",";
+				csvFile << x << "," << y << "," << z << ",";
+				csvFile << xVel << "," << yVel << "," << zVel << ",";
+				csvFile << xAccel << "," << yAccel << "," << zAccel << "\n";
+
+
+				prevPositions[i][0] = x;
+				prevPositions[i][1] = y;
+				prevPositions[i][2] = z;
+
+				prevVelocities[i][0] = xVel;
+				prevVelocities[i][1] = yVel;
+				prevVelocities[i][2] = zVel;
+
+				dataToSend = objectsToTrack[i];
+				dataToSend.append("~");
+				dataToSend.append(boost::lexical_cast<string>(x));
+				dataToSend.append("~");
+				dataToSend.append(boost::lexical_cast<string>(y));
+				dataToSend.append("~");
+				dataToSend.append(boost::lexical_cast<string>(z));
+				//          formatters[i] % objectsToTrack[i];
+				//          formatters[i] % (globalTranslate.Translation[0] / 1000);
+				//          formatters[i] % (globalTranslate.Translation[1] / 1000);
+				//          formatters[i] % (globalTranslate.Translation[2] / 1000);
+				//          dataToSend.append(formatters[i].str());
+				//    outputFile << dataToSend << "\n";
+				//cout << dataToSend << endl;
+				dataToSend.append("\n");
+				dataToSendAudio += "%" + dataToSend;
+
+				if(oscDelay == 0)
+				{
+					wekinatorPacket
+						<< x
+						<< y
+						<< z;
+
+					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
+					<< x
+					<< y
+					<< z
+					<< osc::EndMessage;
+
+					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/velocity").c_str())
+					<< xVel
+					<< yVel
+					<< zVel
+					<< osc::EndMessage;
+
+					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
+					<< xAccel
+					<< yAccel
+					<< zAccel
+					<< osc::EndMessage;
+				}
+
+				if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
+				dataToSendSlaves = dataToSend + "~RECORD";
+				else
+				dataToSendSlaves = dataToSend + "~NOREC";
+
+				if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1)
+				{
+					perror ("ERROR sendto() - real data");
+				}
+				//printf("I sent %s\n", dataToSend.c_str());
+			} // end for loop thru objectsToTrack
+
+			if (sendto(s, dataToSendAudio.c_str(), dataToSendAudio.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+			{
+				perror ("ERROR sendto()");
+			}
+
+			if(oscDelay == 0)
+			{
+				//cout << (areaSummation*4.0)/2.0 << endl;
+				areaSummation = (areaSummation*4.0)/2.0;
+				packet <<  osc::BeginMessage("/area")
+				<< areaSummation
+				<< osc::EndMessage;
+
+				packet << osc::EndBundle;
+				socket.Send(packet.Data(), packet.Size());
+
+				wekinatorPacket << osc::EndMessage;
+				wekinatorSocket.Send(wekinatorPacket.Data(), wekinatorPacket.Size());
+
+				oscDelay++;
+			}
+			else if(oscDelay == 8)
+				oscDelay = 0;
+			else
+				oscDelay++;
+
+		}
+		else
+		{ // end ifDrawingOn
+			dataToSend = "DUMMYDATA\n";
+			if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
+			{
+				perror ("ERROR sendto()");
+			}
+			usleep(10000);
+		} // end else of ifDrawingOn
 	}
+} // end live tracking w/ Vicon
 
-    if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
-      dataToSendSlaves = dataToSend + "~RECORD";
-    else
-      dataToSendSlaves = dataToSend + "~NOREC";
-
-    if (sendto(s2, dataToSendSlaves.c_str(), dataToSendSlaves.length(), 0, (struct sockaddr*)&si_other2, slen2) == -1)
-    {
-      perror ("ERROR sendto() - real data");
-    }
-    //printf("I sent %s\n", dataToSend.c_str());
-  } // end for loop thru objectsToTrack
-
-  if (sendto(s, dataToSendAudio.c_str(), dataToSendAudio.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
-  {
-    perror ("ERROR sendto()");
-  }
-
-	if(oscDelay == 0)
-	{
-		//cout << (areaSummation*4.0)/2.0 << endl;
-		areaSummation = (areaSummation*4.0)/2.0;
-		packet <<  osc::BeginMessage("/area")
-					 << areaSummation
-					 << osc::EndMessage;
-
-	  packet << osc::EndBundle;
-	  socket.Send(packet.Data(), packet.Size());
-
-	  oscDelay++;
-	}
-	else if(oscDelay == 8)
-	  oscDelay = 0;
-	else
-	  oscDelay++;
-
-      }
-      else
-      { // end ifDrawingOn
-        dataToSend = "DUMMYDATA\n";
-        if (sendto(s, dataToSend.c_str(), dataToSend.length(), 0, (struct sockaddr*)&si_other, slen) == -1)
-        {
-          perror ("ERROR sendto()");
-        }
-        usleep(10000);
-      } // end else of ifDrawingOn
-    }
-  } // end live tracking w/ Vicon
-
-  return 0;
+return 0;
 }
