@@ -13,3 +13,4 @@ rocks run host tile-0-7 command="DISPLAY=tile-0-7:0.0 /research/emvasey/ilSoP-OS
 #./GestureResponseMaster FALSE 10.2.255.255 25884 OutputFile FlagObject ObjectsToTrack
 
 ./GestureResponseMaster FALSE 141.219.28.17 9875 testoutput.txt Wand FootR FootL HandL HandR
+#./GestureResponseMaster FALSE 141.219.28.17 9875 testoutput.txt Wand HandL HandR
