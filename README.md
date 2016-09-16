@@ -13,7 +13,11 @@ Here are the simulations the launcher supports:
   - World Map: `./launcher.sh worldmap`
 
 ###Info for Gesture Artwork
-When GestureArtwork is run, it sends OSC message data to the Windows computer (at IP 141.219.28.17, port 6448) formatted as follows:
-`<vicon_object_name>/ X Y Z`
+When GestureArtwork is run, it sends two OSC messages to the Windows computer (at IP 141.219.28.17).
+One is sent on port 6448, and is formatted as follows:
+`<vicon_object_name>/<position/velocity/acceleration>/ X Y Z`
+
+The other is a list of all the positions sent on port 6449, formatted as follows:
+`positions/ X1 Y1 Z1 X2 Y2 Z2 ... Xn Yn Zn`
 
 
