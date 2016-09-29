@@ -512,7 +512,6 @@ else
 
 	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 	UdpTransmitSocket wekinatorSocket(IpEndpointName("141.219.28.17", 6449));
-
 	//Start timer
 	timeval oldTime;
 	gettimeofday(&oldTime, NULL);
@@ -556,9 +555,16 @@ else
 		{
 			string dataToSendAudio, dataToSendSlaves;
 			char buffer[1024];
-			char wekinatorBuffer[1024];
+			char wekinatorPositionBuffer[1024];
+			char wekinatorVelocityBuffer[1024];
+			char wekinatorAccelerationBuffer[1024];
+			char wekinatorAllBuffer[2048];
+
 			osc::OutboundPacketStream packet (buffer, 1024);
-			osc::OutboundPacketStream wekinatorPacket(wekinatorBuffer, 1024);
+			osc::OutboundPacketStream wekinatorPacketPosition(wekinatorPositionBuffer, 1024);
+			osc::OutboundPacketStream wekinatorPacketVelocity(wekinatorVelocityBuffer, 1024);
+			osc::OutboundPacketStream wekinatorPacketAcceleration(wekinatorAccelerationBuffer, 1024);
+			osc::OutboundPacketStream wekinatorPacketAll(wekinatorAllBuffer, 2048);
 
 			timeval newTime;
 			gettimeofday(&newTime, NULL);
@@ -576,7 +582,10 @@ else
 			if(oscDelay == 0)
 			{
 				packet << osc::BeginBundle();
-				wekinatorPacket << osc::BeginMessage("/positions");
+				wekinatorPacketPosition << osc::BeginMessage("/positions");
+				wekinatorPacketVelocity << osc::BeginMessage("/velocities");
+				wekinatorPacketAcceleration << osc::BeginMessage("/accelerations");
+				wekinatorPacketAll << osc::BeginMessage("/all");
 			}
 
 
@@ -614,6 +623,9 @@ else
 
 				}
 
+				cout << "Prev X: " << prevPositions[i][0] << "  Prev Y: "
+				<< prevPositions[i][1] << "  Prev Z: " << prevPositions[i][2] << endl;
+
 				xVel = (x-prevPositions[i][0])/deltaT;
 				yVel = (y-prevPositions[i][1])/deltaT;
 				zVel = (z-prevPositions[i][2])/deltaT;
@@ -631,7 +643,6 @@ else
 				csvFile << x << "," << y << "," << z << ",";
 				csvFile << xVel << "," << yVel << "," << zVel << ",";
 				csvFile << xAccel << "," << yAccel << "," << zAccel << "\n";
-
 
 				prevPositions[i][0] = x;
 				prevPositions[i][1] = y;
@@ -660,10 +671,31 @@ else
 
 				if(oscDelay == 0)
 				{
-					wekinatorPacket
+					wekinatorPacketPosition
 						<< x
 						<< y
 						<< z;
+
+					wekinatorPacketVelocity
+						<< xVel
+						<< yVel
+						<< zVel;
+
+					wekinatorPacketAcceleration
+						<< xAccel
+						<< yAccel
+						<< zAccel;
+
+					wekinatorPacketAll
+						<< x
+						<< y
+						<< z
+						<< xVel
+						<< yVel
+						<< zVel
+						<< xAccel
+						<< yAccel
+						<< zAccel;
 
 					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
 					<< x
@@ -712,8 +744,15 @@ else
 				packet << osc::EndBundle;
 				socket.Send(packet.Data(), packet.Size());
 
-				wekinatorPacket << osc::EndMessage;
-				wekinatorSocket.Send(wekinatorPacket.Data(), wekinatorPacket.Size());
+				wekinatorPacketPosition << osc::EndMessage;
+				wekinatorPacketVelocity << osc::EndMessage;
+				wekinatorPacketAcceleration << osc::EndMessage;
+				wekinatorPacketAll << osc::EndMessage;
+
+				wekinatorSocket.Send(wekinatorPacketPosition.Data(), wekinatorPacketPosition.Size());
+				wekinatorSocket.Send(wekinatorPacketVelocity.Data(), wekinatorPacketVelocity.Size());
+				wekinatorSocket.Send(wekinatorPacketAcceleration.Data(), wekinatorPacketAcceleration.Size());
+				wekinatorSocket.Send(wekinatorPacketAll.Data(), wekinatorPacketAll.Size());
 
 				oscDelay++;
 			}
