@@ -520,11 +520,17 @@ else
 	//initialize previous value vectors
 	vector<vector<float> > prevPositions(objectsToTrack.size());
 	vector<vector<float> > prevVelocities(objectsToTrack.size());
+    vector<vector<float> > prevAccelerations(objectsToTrack.size());
+
+    //low-pass filter velocity strength
+    float lowPassVelStrength = 0.2;
+    float lowPassAccelStrength = 0.2;
 
 	for(int i = 0; i < objectsToTrack.size(); i++)
 	{
 		prevPositions.push_back(vector<float>(3));
 		prevVelocities.push_back(vector<float>(3));
+        prevAccelerations.push_back(vector<float>(3));
 	}
 
 	int oscDelay = 0;
@@ -626,13 +632,13 @@ else
 				cout << "Prev X: " << prevPositions[i][0] << "  Prev Y: "
 				<< prevPositions[i][1] << "  Prev Z: " << prevPositions[i][2] << endl;
 
-				xVel = (x-prevPositions[i][0])/deltaT;
-				yVel = (y-prevPositions[i][1])/deltaT;
-				zVel = (z-prevPositions[i][2])/deltaT;
+				xVel = prevVelocities[i][0] + lowPassVelStrength * (x-prevPositions[i][0])/deltaT;
+				yVel = prevVelocities[i][1] + lowPassVelStrength * (y-prevPositions[i][1])/deltaT;
+				zVel = prevVelocities[i][2] + lowPassVelStrength * (z-prevPositions[i][2])/deltaT;
 
-				xAccel = (x-prevPositions[i][0])/(deltaT*deltaT);
-				yAccel = (y-prevPositions[i][1])/(deltaT*deltaT);
-				zAccel = (z-prevPositions[i][2])/(deltaT*deltaT);
+				xAccel = prevAccelerations[i][0] + lowPassAccelStrength * (xVel - prevVelocities[i][0])/deltaT;
+				yAccel = prevAccelerations[i][1] + lowPassAccelStrength * (yVel - prevVelocities[i][1])/deltaT;
+				zAccel = prevAccelerations[i][2] + lowPassAccelStrength * (zVel - prevVelocities[i][2])/deltaT;
 
 				cout << "X: " << xAccel
 					<< "  Y: " << yAccel
@@ -651,6 +657,10 @@ else
 				prevVelocities[i][0] = xVel;
 				prevVelocities[i][1] = yVel;
 				prevVelocities[i][2] = zVel;
+
+                prevAccelerations[i][0] = xAccel;
+                prevAccelerations[i][1] = yAccel;
+                prevAccelerations[i][2] = zAccel;
 
 				dataToSend = objectsToTrack[i];
 				dataToSend.append("~");
@@ -679,12 +689,14 @@ else
 					wekinatorPacketVelocity
 						<< xVel
 						<< yVel
-						<< zVel;
+						<< zVel
+                        << sqrt(xVel*xVel + yVel*yVel + zVel*zVel);
 
 					wekinatorPacketAcceleration
 						<< xAccel
 						<< yAccel
-						<< zAccel;
+						<< zAccel
+                        << sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel);
 
 					wekinatorPacketAll
 						<< x
@@ -695,7 +707,9 @@ else
 						<< zVel
 						<< xAccel
 						<< yAccel
-						<< zAccel;
+						<< zAccel
+                        << sqrt(xVel*xVel + yVel*yVel + zVel*zVel)
+                        << sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel);
 
 					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
 					<< x
@@ -707,12 +721,14 @@ else
 					<< xVel
 					<< yVel
 					<< zVel
+                    << sqrt(xVel*xVel + yVel*yVel + zVel*zVel)
 					<< osc::EndMessage;
 
 					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/acceleration").c_str())
 					<< xAccel
 					<< yAccel
 					<< zAccel
+                    << sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel)
 					<< osc::EndMessage;
 				}
 
