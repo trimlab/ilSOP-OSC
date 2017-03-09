@@ -609,6 +609,10 @@ else
 				y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
 				z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
 
+				float xVicon = x;
+				float yVicon = y;
+				float zVicon = z;
+
 				//Area of person
 				if(i < objectsToTrack.size()-1)
 				{
@@ -722,11 +726,11 @@ else
 
 				dataToSend = objectsToTrack[i];
 				dataToSend.append("~");
-				dataToSend.append(boost::lexical_cast<string>(x));
+				dataToSend.append(boost::lexical_cast<string>(xVicon));
 				dataToSend.append("~");
-				dataToSend.append(boost::lexical_cast<string>(y));
+				dataToSend.append(boost::lexical_cast<string>(yVicon));
 				dataToSend.append("~");
-				dataToSend.append(boost::lexical_cast<string>(z));
+				dataToSend.append(boost::lexical_cast<string>(zVicon));
 				//          formatters[i] % objectsToTrack[i];
 				//          formatters[i] % (globalTranslate.Translation[0] / 1000);
 				//          formatters[i] % (globalTranslate.Translation[1] / 1000);
