@@ -523,17 +523,18 @@ else
     vector<vector<float> > prevAccelerations(objectsToTrack.size());
 
     //low-pass filter velocity strength
-    float lowPassVelStrength = 0.2;
-    float lowPassAccelStrength = 0.2;
+    float lowPassVelStrength = 0.1; //default
+    float lowPassAccelStrength = 1.0; //default
 
 	for(int i = 0; i < objectsToTrack.size(); i++)
 	{
-		prevPositions.push_back(vector<float>(3));
-		prevVelocities.push_back(vector<float>(3));
-        prevAccelerations.push_back(vector<float>(3));
+		prevPositions.push_back(vector<float>(3,0));
+		prevVelocities.push_back(vector<float>(3,0));
+        prevAccelerations.push_back(vector<float>(3,0));
 	}
 
 	int oscDelay = 0;
+	int initializeInterval = 2;
 
 	while (true)
 	{
@@ -575,12 +576,12 @@ else
 			timeval newTime;
 			gettimeofday(&newTime, NULL);
 
-			float deltaT = (newTime.tv_sec * 1000 + newTime.tv_usec / 1000) - (oldTime.tv_sec * 1000 + oldTime.tv_usec / 1000);
+			double deltaT = (newTime.tv_sec * 1000 + newTime.tv_usec / 1000) - (oldTime.tv_sec * 1000 + oldTime.tv_usec / 1000);
 			deltaT = deltaT / 1000.0f;
 
 			runTime = runTime + deltaT;
 
-			cout << deltaT << endl;
+			//cout << deltaT << endl;
 
 			gettimeofday(&oldTime, NULL);
 
@@ -596,7 +597,6 @@ else
 
 
 			float areaSummation = 0;
-
 			float x,y,z,xVel,yVel,zVel,xAccel,yAccel,zAccel;
 
 			for (int i = 0; i < objectsToTrack.size(); i++)
@@ -629,20 +629,72 @@ else
 
 				}
 
-				cout << "Prev X: " << prevPositions[i][0] << "  Prev Y: "
-				<< prevPositions[i][1] << "  Prev Z: " << prevPositions[i][2] << endl;
+				if(abs(x) < 0.01 && abs(y) < 0.01 && z == -2)
+				{
+					x = prevPositions[i][0];
+					y = prevPositions[i][1];
+					z = prevPositions[i][2];
 
-				xVel = prevVelocities[i][0] + lowPassVelStrength * (x-prevPositions[i][0])/deltaT;
-				yVel = prevVelocities[i][1] + lowPassVelStrength * (y-prevPositions[i][1])/deltaT;
-				zVel = prevVelocities[i][2] + lowPassVelStrength * (z-prevPositions[i][2])/deltaT;
+					if(initializeInterval < 2)
+					{
+						xVel = prevVelocities[i][0] * 0.975;
+						yVel = prevVelocities[i][1] * 0.975;
+						zVel = prevVelocities[i][2] * 0.975;
+					}
 
-				xAccel = prevAccelerations[i][0] + lowPassAccelStrength * (xVel - prevVelocities[i][0])/deltaT;
-				yAccel = prevAccelerations[i][1] + lowPassAccelStrength * (yVel - prevVelocities[i][1])/deltaT;
-				zAccel = prevAccelerations[i][2] + lowPassAccelStrength * (zVel - prevVelocities[i][2])/deltaT;
+					if(initializeInterval < 1)
+					{
+						xAccel = prevAccelerations[i][0];
+						yAccel = prevAccelerations[i][1];
+						zAccel = prevAccelerations[i][2];
+					}
+				}
+				else
+				{
+					//cout << "Prev X: " << prevPositions[i][0] << "  Prev Y: "
+					//<< prevPositions[i][1] << "  Prev Z: " << prevPositions[i][2] << endl;
 
-				cout << "X: " << xAccel
-					<< "  Y: " << yAccel
-					<< "  Z: " << zAccel << endl;
+					if(initializeInterval < 2)
+					{
+						float xVelUnfiltered = ((x-prevPositions[i][0])/deltaT);
+						float yVelUnfiltered = ((y-prevPositions[i][1])/deltaT);
+						float zVelUnfiltered = ((z-prevPositions[i][2])/deltaT);
+
+						xVel = prevVelocities[i][0] + lowPassVelStrength * (xVelUnfiltered - prevVelocities[i][0]);
+						yVel = prevVelocities[i][1] + lowPassVelStrength * (yVelUnfiltered - prevVelocities[i][1]);
+						zVel = prevVelocities[i][2] + lowPassVelStrength * (zVelUnfiltered - prevVelocities[i][2]);
+					}
+
+					if(initializeInterval < 1)
+					{
+						float xAccelUnfiltered = ((xVel-prevVelocities[i][0])/deltaT);
+						float yAccelUnfiltered = ((yVel-prevVelocities[i][1])/deltaT);
+						float zAccelUnfiltered = ((zVel-prevVelocities[i][2])/deltaT);
+
+						xAccel = prevAccelerations[i][0] + lowPassAccelStrength * (xAccelUnfiltered - prevAccelerations[i][0]);
+						yAccel = prevAccelerations[i][1] + lowPassAccelStrength * (yAccelUnfiltered - prevAccelerations[i][1]);
+						zAccel = prevAccelerations[i][2] + lowPassAccelStrength * (zAccelUnfiltered - prevAccelerations[i][2]);
+
+						if(abs(xAccel) > 250)
+						{
+							xAccel = prevAccelerations[i][0];
+						}
+
+						if(abs(yAccel) > 250)
+						{
+							yAccel = prevAccelerations[i][1];
+						}
+
+						if(abs(zAccel) > 250)
+						{
+							zAccel = prevAccelerations[i][2];
+						}
+					}
+				}
+
+				//cout << "X: " << xAccel
+					//<< "  Y: " << yAccel
+					//<< "  Z: " << zAccel << endl;
 
 				//Log position, velocity, acceleration to CSV
 				csvFile << runTime << "," << objectsToTrack[i] << ",";
@@ -654,13 +706,19 @@ else
 				prevPositions[i][1] = y;
 				prevPositions[i][2] = z;
 
-				prevVelocities[i][0] = xVel;
-				prevVelocities[i][1] = yVel;
-				prevVelocities[i][2] = zVel;
+				if(initializeInterval < 2)
+				{
+					prevVelocities[i][0] = xVel;
+					prevVelocities[i][1] = yVel;
+					prevVelocities[i][2] = zVel;
+				}
 
-                prevAccelerations[i][0] = xAccel;
-                prevAccelerations[i][1] = yAccel;
-                prevAccelerations[i][2] = zAccel;
+				if(initializeInterval < 1)
+				{
+	                prevAccelerations[i][0] = xAccel;
+	                prevAccelerations[i][1] = yAccel;
+	                prevAccelerations[i][2] = zAccel;
+            	}
 
 				dataToSend = objectsToTrack[i];
 				dataToSend.append("~");
@@ -675,7 +733,7 @@ else
 				//          formatters[i] % (globalTranslate.Translation[2] / 1000);
 				//          dataToSend.append(formatters[i].str());
 				//    outputFile << dataToSend << "\n";
-				//cout << dataToSend << endl;
+				cout << dataToSend << endl;
 				dataToSend.append("\n");
 				dataToSendAudio += "%" + dataToSend;
 
@@ -772,11 +830,13 @@ else
 
 				oscDelay++;
 			}
-			else if(oscDelay == 8)
+			else if(oscDelay == 4)
 				oscDelay = 0;
 			else
 				oscDelay++;
 
+		    if(initializeInterval > 0)
+        		initializeInterval--;
 		}
 		else
 		{ // end ifDrawingOn
