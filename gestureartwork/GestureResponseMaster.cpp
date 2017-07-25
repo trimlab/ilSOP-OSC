@@ -493,7 +493,6 @@ if (simulation)
 }
 else
 { // live tracking w/ Vicon
-
 	//Standard log file
 	outputFile.open(gargv[4]);
 
@@ -509,7 +508,7 @@ else
 
 	//vector<format> formatters;
 	//for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
-
+	
 	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 	UdpTransmitSocket wekinatorSocket(IpEndpointName("141.219.28.17", 6449));
 	//Start timer
@@ -528,9 +527,9 @@ else
 
 	for(int i = 0; i < objectsToTrack.size(); i++)
 	{
-		prevPositions.push_back(vector<float>(3,0));
-		prevVelocities.push_back(vector<float>(3,0));
-        prevAccelerations.push_back(vector<float>(3,0));
+		prevPositions[i] = vector<float>(3,0.0f);
+		prevVelocities[i] = vector<float>(3,0.0f);
+        prevAccelerations[i] = vector<float>(3,0.0f);
 	}
 
 	int oscDelay = 0;
@@ -544,6 +543,7 @@ else
 
 		/*if (switchDrawingCtr > 0)
 		switchDrawingCtr--;*/
+
 
 		Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
 		//cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
