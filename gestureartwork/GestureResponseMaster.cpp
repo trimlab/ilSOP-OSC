@@ -411,6 +411,7 @@ void sender()
 	} // end live tracking w/ Vicon
 }
 
+//HERE
 int main(int argc, char** argv)
 {
 	if (argc < 2) {
@@ -471,6 +472,7 @@ int main(int argc, char** argv)
 
 //glutMainLoop();
 
+//Simulation Mode
 if (simulation)
 { // read from data dump
 	string line;
@@ -491,6 +493,7 @@ if (simulation)
 	}
 	inputFile.close();
 }
+//Real-Time Mode
 else
 { // live tracking w/ Vicon
 	//Standard log file
@@ -498,19 +501,21 @@ else
 
 	//CSV log file
 	csvFile.open("test.csv");
-
 	csvFile << "Time,Object,X Position,Y Position,Z Position,X Velocity,Y Velocity,Z Velocity,X Acceleration,Y Acceleration,Z Acceleration" << "\n";
 
 	flagObject = gargv[5];
 
+	//Initialize list of objects to track
 	for (int i = 6; i < gargc; i++)
 	objectsToTrack.push_back(string(gargv[i]));
 
 	//vector<format> formatters;
 	//for (int i = 0; i < objectsToTrack.size(); i++) formatters.push_back(format("%1%~%2%~%3%~%4%"));
 	
+	//OSC socket setup
 	UdpTransmitSocket socket(IpEndpointName("141.219.28.17", 6448));
 	UdpTransmitSocket wekinatorSocket(IpEndpointName("141.219.28.17", 6449));
+
 	//Start timer
 	timeval oldTime;
 	gettimeofday(&oldTime, NULL);
@@ -544,7 +549,7 @@ else
 		/*if (switchDrawingCtr > 0)
 		switchDrawingCtr--;*/
 
-
+		//Visualization
 		Output_GetSegmentGlobalTranslation flagTranslate = MyClient.GetSegmentGlobalTranslation(flagObject, flagObject);
 		//cout << flagTranslate.Translation[1] << "," << flagTranslate.Translation[2] << endl;
 		if (flagTranslate.Translation[2] > 2000.0 && switchDrawingCtr <= 0)
@@ -560,6 +565,7 @@ else
 
 		if (true)
 		{
+			//Initialize OSC buffers and streams
 			string dataToSendAudio, dataToSendSlaves;
 			char buffer[1024];
 			char wekinatorPositionBuffer[1024];
@@ -573,6 +579,7 @@ else
 			osc::OutboundPacketStream wekinatorPacketAcceleration(wekinatorAccelerationBuffer, 1024);
 			osc::OutboundPacketStream wekinatorPacketAll(wekinatorAllBuffer, 2048);
 
+			//Compute deltaT
 			timeval newTime;
 			gettimeofday(&newTime, NULL);
 
@@ -585,26 +592,33 @@ else
 
 			gettimeofday(&oldTime, NULL);
 
-
+			//If we are ready to send
 			if(oscDelay == 0)
 			{
+				//Bundle for PureData
 				packet << osc::BeginBundle();
+				
+				//Separate packets for Wekinator
 				wekinatorPacketPosition << osc::BeginMessage("/positions");
 				wekinatorPacketVelocity << osc::BeginMessage("/velocities");
 				wekinatorPacketAcceleration << osc::BeginMessage("/accelerations");
 				wekinatorPacketAll << osc::BeginMessage("/all");
 			}
 
-
+			//Calculation variables
 			float areaSummation = 0;
 			float x,y,z,xVel,yVel,zVel,xAccel,yAccel,zAccel;
 
 			for (int i = 0; i < objectsToTrack.size(); i++)
 			{
+				//Clear Buffers
 				dataToSend.clear();
+
+				//Read data from Vicon
 				Output_GetSegmentGlobalTranslation globalTranslate = MyClient.GetSegmentGlobalTranslation(objectsToTrack[i], objectsToTrack[i]);
 				Output_GetSegmentGlobalRotationEulerXYZ globalRotation = MyClient.GetSegmentGlobalRotationEulerXYZ(objectsToTrack[i], objectsToTrack[i]);
 
+				//Get Position from Vicon
 				x = globalTranslate.Translation[0] / -1000.0f;
 				y = globalTranslate.Translation[1] / 1000.0f * 1.5f;
 				z = globalTranslate.Translation[2] / 1000.0f * 3.5f - 2.0f;
@@ -630,15 +644,18 @@ else
 
 					//Add magnitude to summation
 					areaSummation += sqrt( prodX*prodX + prodY * prodY + prodZ * prodZ);
-
 				}
 
+				//Thresholds for filtering
+
+				//If object is not seen
 				if(abs(x) < 0.01 && abs(y) < 0.01 && z == -2)
 				{
 					x = prevPositions[i][0];
 					y = prevPositions[i][1];
 					z = prevPositions[i][2];
 
+					//Velocity initialization preprocessing
 					if(initializeInterval < 2)
 					{
 						xVel = prevVelocities[i][0] * 0.975;
@@ -646,6 +663,7 @@ else
 						zVel = prevVelocities[i][2] * 0.975;
 					}
 
+					//Acceleration initialization preprocessing
 					if(initializeInterval < 1)
 					{
 						xAccel = prevAccelerations[i][0];
@@ -653,11 +671,13 @@ else
 						zAccel = prevAccelerations[i][2];
 					}
 				}
+				//If object is seen
 				else
 				{
 					//cout << "Prev X: " << prevPositions[i][0] << "  Prev Y: "
 					//<< prevPositions[i][1] << "  Prev Z: " << prevPositions[i][2] << endl;
 
+					//Apply low pass filtering for velocity
 					if(initializeInterval < 2)
 					{
 						float xVelUnfiltered = ((x-prevPositions[i][0])/deltaT);
@@ -669,6 +689,7 @@ else
 						zVel = prevVelocities[i][2] + lowPassVelStrength * (zVelUnfiltered - prevVelocities[i][2]);
 					}
 
+					//Apply low pass filtering for acceleration
 					if(initializeInterval < 1)
 					{
 						float xAccelUnfiltered = ((xVel-prevVelocities[i][0])/deltaT);
@@ -679,6 +700,7 @@ else
 						yAccel = prevAccelerations[i][1] + lowPassAccelStrength * (yAccelUnfiltered - prevAccelerations[i][1]);
 						zAccel = prevAccelerations[i][2] + lowPassAccelStrength * (zAccelUnfiltered - prevAccelerations[i][2]);
 
+						//Upper bound on acceleration data
 						if(abs(xAccel) > 250)
 						{
 							xAccel = prevAccelerations[i][0];
@@ -706,10 +728,12 @@ else
 				csvFile << xVel << "," << yVel << "," << zVel << ",";
 				csvFile << xAccel << "," << yAccel << "," << zAccel << "\n";
 
+				//Save positions as previous positions for calculations
 				prevPositions[i][0] = x;
 				prevPositions[i][1] = y;
 				prevPositions[i][2] = z;
 
+				//Save velocities
 				if(initializeInterval < 2)
 				{
 					prevVelocities[i][0] = xVel;
@@ -717,6 +741,7 @@ else
 					prevVelocities[i][2] = zVel;
 				}
 
+				//Save accelerations
 				if(initializeInterval < 1)
 				{
 	                prevAccelerations[i][0] = xAccel;
@@ -724,6 +749,7 @@ else
 	                prevAccelerations[i][2] = zAccel;
             	}
 
+            	//Send x,y,z position to slave nodes
 				dataToSend = objectsToTrack[i];
 				dataToSend.append("~");
 				dataToSend.append(boost::lexical_cast<string>(xVicon));
@@ -741,8 +767,10 @@ else
 				dataToSend.append("\n");
 				dataToSendAudio += "%" + dataToSend;
 
+				//If we are ready to send data
 				if(oscDelay == 0)
 				{
+					//Wekinator OSC packets
 					wekinatorPacketPosition
 						<< x
 						<< y
@@ -773,6 +801,7 @@ else
                         << sqrt(xVel*xVel + yVel*yVel + zVel*zVel)
                         << sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel);
 
+                    //PureData OSC packets
 					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
 					<< x
 					<< y
@@ -794,6 +823,7 @@ else
 					<< osc::EndMessage;
 				}
 
+				//Recording data
 				if (drawingOn && totalCtr % UPDATE_COUNTER == 0)
 				dataToSendSlaves = dataToSend + "~RECORD";
 				else
@@ -811,17 +841,20 @@ else
 				perror ("ERROR sendto()");
 			}
 
+			//If we are ready to send data
 			if(oscDelay == 0)
 			{
-				//cout << (areaSummation*4.0)/2.0 << endl;
+				//OSC message for area
 				areaSummation = (areaSummation*4.0)/2.0;
 				packet <<  osc::BeginMessage("/area")
 				<< areaSummation
 				<< osc::EndMessage;
 
+				//Finalize bundle and send to PureData
 				packet << osc::EndBundle;
 				socket.Send(packet.Data(), packet.Size());
 
+				//Finalize messages and send to Wekinator
 				wekinatorPacketPosition << osc::EndMessage;
 				wekinatorPacketVelocity << osc::EndMessage;
 				wekinatorPacketAcceleration << osc::EndMessage;
