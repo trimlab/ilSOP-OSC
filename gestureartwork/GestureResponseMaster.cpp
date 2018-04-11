@@ -797,9 +797,9 @@ else
 						<< zVel
 						<< xAccel
 						<< yAccel
-						<< zAccel
-                        << sqrt(xVel*xVel + yVel*yVel + zVel*zVel)
-                        << sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel);
+						<< zAccel;
+                        //<< sqrt(xVel*xVel + yVel*yVel + zVel*zVel)
+                        //<< sqrt(xAccel*xAccel + yAccel*yAccel + zAccel*zAccel);
 
                     //PureData OSC packets
 					packet << osc::BeginMessage(("/" + objectsToTrack[i]+"/position").c_str())
